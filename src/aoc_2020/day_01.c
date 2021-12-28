@@ -7,10 +7,27 @@
 
 #include "../utility.h"
 
-uint64_t solve(const char* const input, size_t size)
+bool product_of_sum(uint64_t sum, const uint64_t* const nums, size_t len, size_t n, uint64_t* product)
+{
+    *product = 1;
+    for(size_t i = 0; i <= (len - n); ++i) {
+        if(n > 1) {
+            if(product_of_sum(sum - nums[i], &nums[i + 1], len - (i + 1), n - 1, product)) {
+                *product *= nums[i];
+                return true;
+            }
+        }
+        else if(nums[i] == sum) {
+            *product *= nums[i];
+            return true;
+        }
+    }
+    return false;
+}
+
+uint64_t solve(const char* const input, size_t size, uint64_t target_sum, size_t n)
 {
     uint64_t ans = 0;
-    const uint64_t target_sum = 2020;
 
     size_t num_values = 0;
     for(size_t i = 0; i < size; ++i) {
@@ -33,23 +50,7 @@ uint64_t solve(const char* const input, size_t size)
     }
     assert(nums_idx == num_values);
 
-    for(size_t i = 0; i < num_values - 1; ++i) {
-        const uint64_t first_val = nums[i];
-        const uint64_t required_val = target_sum - first_val;
-
-        bool match_found = false;
-        for(size_t j = i + 1; j < num_values; ++j) {
-            const uint64_t second_val = nums[j];
-            if(second_val == required_val) {
-                ans = first_val * second_val;
-                match_found = true;
-                break;
-            }
-        }
-        if(match_found) {
-            break;
-        }
-    }
+    product_of_sum(target_sum, nums, num_values, n, &ans);
 
     free(nums);
 
@@ -64,7 +65,7 @@ void day_01_part_1_example()
     const bool success = read_file_into_buf("../data/day_01_part_1_example.txt", &input, &size);
     assert(success);
 
-    const uint64_t ans = solve(input, size);
+    const uint64_t ans = solve(input, size, 2020, 2);
 
     TEST_ASSERT_EQUAL_UINT64(514579, ans);
 
@@ -79,9 +80,39 @@ void day_01_part_1_problem()
     const bool success = read_file_into_buf("../data/day_01_part_1_input.txt", &input, &size);
     assert(success);
 
-    const uint64_t ans = solve(input, size);
+    const uint64_t ans = solve(input, size, 2020, 2);
 
     TEST_ASSERT_EQUAL_UINT64(744475, ans);
+
+    free(input);
+}
+
+void day_01_part_2_example()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_01_part_1_example.txt", &input, &size);
+    assert(success);
+
+    const uint64_t ans = solve(input, size, 2020, 3);
+
+    TEST_ASSERT_EQUAL_UINT64(241861950, ans);
+
+    free(input);
+}
+
+void day_01_part_2_problem()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_01_part_1_input.txt", &input, &size);
+    assert(success);
+
+    const uint64_t ans = solve(input, size, 2020, 3);
+
+    TEST_ASSERT_EQUAL_UINT64(70276940, ans);
 
     free(input);
 }
