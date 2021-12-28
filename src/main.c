@@ -22,6 +22,8 @@ int main()
 
     RUN_TEST(day_02_part_1_example);
     RUN_TEST(day_02_part_1_problem);
+    RUN_TEST(day_02_part_2_example);
+    RUN_TEST(day_02_part_2_problem);
 
     return UNITY_END();
 }
