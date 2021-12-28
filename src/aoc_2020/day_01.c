@@ -1,3 +1,5 @@
+#include "day_01.h"
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -7,7 +9,7 @@
 
 #include "../utility.h"
 
-bool product_of_sum(uint64_t sum, const uint64_t* const nums, size_t len, size_t n, uint64_t* product)
+static bool product_of_sum(uint64_t sum, const uint64_t* const nums, size_t len, size_t n, uint64_t* product)
 {
     *product = 1;
     for(size_t i = 0; i <= (len - n); ++i) {
@@ -25,7 +27,7 @@ bool product_of_sum(uint64_t sum, const uint64_t* const nums, size_t len, size_t
     return false;
 }
 
-uint64_t solve(const char* const input, size_t size, uint64_t target_sum, size_t n)
+static uint64_t solve(const char* const input, size_t size, uint64_t target_sum, size_t n)
 {
     uint64_t ans = 0;
 
