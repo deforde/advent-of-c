@@ -2,4 +2,5 @@ target_sources(advent-of-c
 PRIVATE
     day_01.c
     day_02.c
+    day_03.c
 )
