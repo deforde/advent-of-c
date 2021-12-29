@@ -166,6 +166,14 @@ static bool is_passport_data_valid(const passport_t* const passport)
         return result;
     }
 
+    const int32_t height = atoi(passport->hgt);
+    if(memcmp(&passport->hgt[unit_pos], "cm", 2) == 0) {
+        result &= height >= 150 && height <= 193;
+    }
+    else {
+        result &= height >= 59 && height <= 76;
+    }
+
     return result;
 }
 
