@@ -4,4 +4,5 @@ PRIVATE
     day_02.c
     day_03.c
     day_04.c
+    day_05.c
 )

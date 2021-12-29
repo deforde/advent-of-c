@@ -2,6 +2,8 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unity.h>
@@ -55,12 +57,12 @@ static void populate_passport_kvpair(passport_t* const passport, const char* con
 static bool is_passport_fields_valid(const passport_t* const passport)
 {
     return passport->byr[0] != 0 &&
-        passport->iyr[0] != 0 &&
-        passport->eyr[0] != 0 &&
-        passport->hgt[0] != 0 &&
-        passport->hcl[0] != 0 &&
-        passport->ecl[0] != 0 &&
-        passport->pid[0] != 0;
+           passport->iyr[0] != 0 &&
+           passport->eyr[0] != 0 &&
+           passport->hgt[0] != 0 &&
+           passport->hcl[0] != 0 &&
+           passport->ecl[0] != 0 &&
+           passport->pid[0] != 0;
 }
 
 static bool is_passport_data_valid(const passport_t* const passport)
@@ -99,12 +101,12 @@ static bool is_passport_data_valid(const passport_t* const passport)
     if(passport->ecl[3] != 0)
         return false;
     if(!(memcmp(passport->ecl, "amb", 3) == 0 ||
-        memcmp(passport->ecl, "blu", 3) == 0 ||
-        memcmp(passport->ecl, "brn", 3) == 0 ||
-        memcmp(passport->ecl, "gry", 3) == 0 ||
-        memcmp(passport->ecl, "grn", 3) == 0 ||
-        memcmp(passport->ecl, "hzl", 3) == 0 ||
-        memcmp(passport->ecl, "oth", 3) == 0))
+         memcmp(passport->ecl, "blu", 3) == 0 ||
+         memcmp(passport->ecl, "brn", 3) == 0 ||
+         memcmp(passport->ecl, "gry", 3) == 0 ||
+         memcmp(passport->ecl, "grn", 3) == 0 ||
+         memcmp(passport->ecl, "hzl", 3) == 0 ||
+         memcmp(passport->ecl, "oth", 3) == 0))
         return false;
 
     if(passport->pid[9] != 0)
@@ -121,13 +123,13 @@ static bool is_passport_data_valid(const passport_t* const passport)
         if(passport->hgt[i] == 0) {
             break;
         }
-        if(!isdigit(passport->hgt[i]) != 0) {
+        if(isdigit(passport->hgt[i]) == 0) {
             unit_pos = i;
             break;
         }
     }
     if(!(memcmp(&passport->hgt[unit_pos], "cm", 2) == 0 ||
-        memcmp(&passport->hgt[unit_pos], "in", 2) == 0))
+         memcmp(&passport->hgt[unit_pos], "in", 2) == 0))
         return false;
     if(passport->hgt[unit_pos + 2] != 0)
         return false;
