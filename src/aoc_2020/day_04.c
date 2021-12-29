@@ -321,7 +321,7 @@ void day_04_part_2_problem()
     assert(success);
 
     const size_t ans = solve_part_2(input, size);
-    TEST_ASSERT_EQUAL_UINT64(245, ans);
+    TEST_ASSERT_EQUAL_UINT64(133, ans);
 
     free(input);
 }
