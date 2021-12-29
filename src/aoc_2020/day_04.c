@@ -69,83 +69,53 @@ static bool is_passport_data_valid(const passport_t* const passport)
         return false;
     }
 
-    bool result = true;
-
-    result &= passport->byr[4] == 0;
-    if(!result) {
-        return result;
-    }
+    if(passport->byr[4] != 0)
+        return false;
     const uint32_t byr = atoi(passport->byr);
-    result &= byr >= 1920 && byr <= 2002;
-    if(!result) {
-        return result;
-    }
+    if(byr < 1920 || byr > 2002)
+        return false;
 
-    result &= passport->iyr[4] == 0;
-    if(!result) {
-        return result;
-    }
+    if(passport->iyr[4] != 0)
+        return false;
     const uint32_t iyr = atoi(passport->iyr);
-    result &= iyr >= 2010 && iyr <= 2020;
-    if(!result) {
-        return result;
-    }
+    if(iyr < 2010 || iyr > 2020)
+        return false;
 
-    result &= passport->eyr[4] == 0;
-    if(!result) {
-        return result;
-    }
+    if(passport->eyr[4] != 0)
+        return false;
     const uint32_t eyr = atoi(passport->eyr);
-    result &= eyr >= 2020 && eyr <= 2030;
-    if(!result) {
-        return result;
-    }
+    if(eyr < 2020 || eyr > 2030)
+        return false;
 
-    result &= passport->hcl[0] == '#';
-    if(!result) {
-        return result;
-    }
-    result &= passport->hcl[7] == 0;
-    if(!result) {
-        return result;
-    }
+    if(passport->hcl[0] != '#')
+        return false;
+    if(passport->hcl[7] != 0)
+        return false;
     for(size_t i = 1; i < 7; i++) {
-        result &= isxdigit(passport->hcl[i]) != 0;
-        if(!result) {
-            return result;
-        }
+        if(isxdigit(passport->hcl[i]) == 0)
+            return false;
     }
 
-    result &= passport->ecl[3] == 0;
-    if(!result) {
-        return result;
-    }
-    result &= memcmp(passport->ecl, "amb", 3) == 0 ||
+    if(passport->ecl[3] != 0)
+        return false;
+    if(!(memcmp(passport->ecl, "amb", 3) == 0 ||
         memcmp(passport->ecl, "blu", 3) == 0 ||
         memcmp(passport->ecl, "brn", 3) == 0 ||
         memcmp(passport->ecl, "gry", 3) == 0 ||
         memcmp(passport->ecl, "grn", 3) == 0 ||
         memcmp(passport->ecl, "hzl", 3) == 0 ||
-        memcmp(passport->ecl, "oth", 3) == 0;
-    if(!result) {
-        return result;
-    }
+        memcmp(passport->ecl, "oth", 3) == 0))
+        return false;
 
-    result &= passport->pid[9] == 0;
-    if(!result) {
-        return result;
-    }
+    if(passport->pid[9] != 0)
+        return false;
     for(size_t i = 0; i < 9; i++) {
-        result &= isdigit(passport->pid[i]) != 0;
-        if(!result) {
-            return result;
-        }
+        if(isdigit(passport->pid[i]) == 0)
+            return false;
     }
 
-    result &= isdigit(passport->hgt[0]) != 0;
-    if(!result) {
-        return result;
-    }
+    if(isdigit(passport->hgt[0]) == 0)
+        return false;
     size_t unit_pos = 0;
     for(size_t i = 1; i < PASSPORT_MAX_VAL_LEN; i++) {
         if(passport->hgt[i] == 0) {
@@ -156,25 +126,23 @@ static bool is_passport_data_valid(const passport_t* const passport)
             break;
         }
     }
-    result &= memcmp(&passport->hgt[unit_pos], "cm", 2) == 0 ||
-        memcmp(&passport->hgt[unit_pos], "in", 2) == 0;
-    if(!result) {
-        return result;
-    }
-    result &= passport->hgt[unit_pos + 2] == 0;
-    if(!result) {
-        return result;
-    }
+    if(!(memcmp(&passport->hgt[unit_pos], "cm", 2) == 0 ||
+        memcmp(&passport->hgt[unit_pos], "in", 2) == 0))
+        return false;
+    if(passport->hgt[unit_pos + 2] != 0)
+        return false;
 
     const int32_t height = atoi(passport->hgt);
     if(memcmp(&passport->hgt[unit_pos], "cm", 2) == 0) {
-        result &= height >= 150 && height <= 193;
+        if(height < 150 || height > 193)
+            return false;
     }
     else {
-        result &= height >= 59 && height <= 76;
+        if(height < 59 || height > 76)
+            return false;
     }
 
-    return result;
+    return true;
 }
 
 static void parse_input(const char* const input, size_t size, passport_t** passports_ref, size_t* n_passports)
