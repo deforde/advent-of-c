@@ -1,6 +1,7 @@
 #include "day_04.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unity.h>
@@ -51,7 +52,7 @@ static void populate_passport_kvpair(passport_t* const passport, const char* con
     }
 }
 
-static bool is_passport_valid(const passport_t* const passport)
+static bool is_passport_fields_valid(const passport_t* const passport)
 {
     return passport->byr[0] != 0 &&
         passport->iyr[0] != 0 &&
@@ -60,6 +61,112 @@ static bool is_passport_valid(const passport_t* const passport)
         passport->hcl[0] != 0 &&
         passport->ecl[0] != 0 &&
         passport->pid[0] != 0;
+}
+
+static bool is_passport_data_valid(const passport_t* const passport)
+{
+    if(!is_passport_fields_valid(passport)) {
+        return false;
+    }
+
+    bool result = true;
+
+    result &= passport->byr[4] == 0;
+    if(!result) {
+        return result;
+    }
+    const uint32_t byr = atoi(passport->byr);
+    result &= byr >= 1920 && byr <= 2002;
+    if(!result) {
+        return result;
+    }
+
+    result &= passport->iyr[4] == 0;
+    if(!result) {
+        return result;
+    }
+    const uint32_t iyr = atoi(passport->iyr);
+    result &= iyr >= 2010 && iyr <= 2020;
+    if(!result) {
+        return result;
+    }
+
+    result &= passport->eyr[4] == 0;
+    if(!result) {
+        return result;
+    }
+    const uint32_t eyr = atoi(passport->eyr);
+    result &= eyr >= 2020 && eyr <= 2030;
+    if(!result) {
+        return result;
+    }
+
+    result &= passport->hcl[0] == '#';
+    if(!result) {
+        return result;
+    }
+    result &= passport->hcl[7] == 0;
+    if(!result) {
+        return result;
+    }
+    for(size_t i = 1; i < 7; i++) {
+        result &= isxdigit(passport->hcl[i]) != 0;
+        if(!result) {
+            return result;
+        }
+    }
+
+    result &= passport->ecl[3] == 0;
+    if(!result) {
+        return result;
+    }
+    result &= memcmp(passport->ecl, "amb", 3) == 0 ||
+        memcmp(passport->ecl, "blu", 3) == 0 ||
+        memcmp(passport->ecl, "brn", 3) == 0 ||
+        memcmp(passport->ecl, "gry", 3) == 0 ||
+        memcmp(passport->ecl, "grn", 3) == 0 ||
+        memcmp(passport->ecl, "hzl", 3) == 0 ||
+        memcmp(passport->ecl, "oth", 3) == 0;
+    if(!result) {
+        return result;
+    }
+
+    result &= passport->pid[9] == 0;
+    if(!result) {
+        return result;
+    }
+    for(size_t i = 0; i < 9; i++) {
+        result &= isdigit(passport->pid[i]) != 0;
+        if(!result) {
+            return result;
+        }
+    }
+
+    result &= isdigit(passport->hgt[0]) != 0;
+    if(!result) {
+        return result;
+    }
+    size_t unit_pos = 0;
+    for(size_t i = 1; i < PASSPORT_MAX_VAL_LEN; i++) {
+        if(passport->hgt[i] == 0) {
+            break;
+        }
+        if(!isdigit(passport->hgt[i]) != 0) {
+            unit_pos = i;
+            break;
+        }
+    }
+    result &= memcmp(&passport->hgt[unit_pos], "cm", 2) == 0 ||
+        memcmp(&passport->hgt[unit_pos], "in", 2) == 0;
+    if(!result) {
+        return result;
+    }
+    result &= passport->hgt[unit_pos + 2] == 0;
+    if(!result) {
+        return result;
+    }
+
+    return result;
 }
 
 static void parse_input(const char* const input, size_t size, passport_t** passports_ref, size_t* n_passports)
@@ -105,7 +212,7 @@ static void parse_input(const char* const input, size_t size, passport_t** passp
     *n_passports = n_passport_mem_refs;
 }
 
-static size_t solve(const char* const input, size_t size)
+static size_t solve_part_1(const char* const input, size_t size)
 {
     passport_t* passports = NULL;
     size_t n_passports = 0;
@@ -113,7 +220,25 @@ static size_t solve(const char* const input, size_t size)
 
     size_t n_valid_passports = 0;
     for(size_t i = 0; i < n_passports; i++) {
-        if(is_passport_valid(&passports[i])) {
+        if(is_passport_fields_valid(&passports[i])) {
+            n_valid_passports++;
+        }
+    }
+
+    free(passports);
+
+    return n_valid_passports;
+}
+
+static size_t solve_part_2(const char* const input, size_t size)
+{
+    passport_t* passports = NULL;
+    size_t n_passports = 0;
+    parse_input(input, size, &passports, &n_passports);
+
+    size_t n_valid_passports = 0;
+    for(size_t i = 0; i < n_passports; i++) {
+        if(is_passport_data_valid(&passports[i])) {
             n_valid_passports++;
         }
     }
@@ -131,7 +256,7 @@ void day_04_part_1_example()
     const bool success = read_file_into_buf("../data/day_04_part_1_example.txt", &input, &size);
     assert(success);
 
-    const size_t ans = solve(input, size);
+    const size_t ans = solve_part_1(input, size);
     TEST_ASSERT_EQUAL_UINT64(2, ans);
 
     free(input);
@@ -145,16 +270,50 @@ void day_04_part_1_problem()
     const bool success = read_file_into_buf("../data/day_04_part_1_input.txt", &input, &size);
     assert(success);
 
-    const size_t ans = solve(input, size);
+    const size_t ans = solve_part_1(input, size);
     TEST_ASSERT_EQUAL_UINT64(245, ans);
 
     free(input);
 }
 
-void day_04_part_2_example()
+void day_04_part_2_example_1()
 {
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_04_part_2_example_1.txt", &input, &size);
+    assert(success);
+
+    const size_t ans = solve_part_2(input, size);
+    TEST_ASSERT_EQUAL_UINT64(0, ans);
+
+    free(input);
+}
+
+void day_04_part_2_example_2()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_04_part_2_example_2.txt", &input, &size);
+    assert(success);
+
+    const size_t ans = solve_part_2(input, size);
+    TEST_ASSERT_EQUAL_UINT64(4, ans);
+
+    free(input);
 }
 
 void day_04_part_2_problem()
 {
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_04_part_1_input.txt", &input, &size);
+    assert(success);
+
+    const size_t ans = solve_part_2(input, size);
+    TEST_ASSERT_EQUAL_UINT64(245, ans);
+
+    free(input);
 }

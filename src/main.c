@@ -34,7 +34,8 @@ int main()
 
     RUN_TEST(day_04_part_1_example);
     RUN_TEST(day_04_part_1_problem);
-    RUN_TEST(day_04_part_2_example);
+    RUN_TEST(day_04_part_2_example_1);
+    RUN_TEST(day_04_part_2_example_2);
     RUN_TEST(day_04_part_2_problem);
 
     return UNITY_END();

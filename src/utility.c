@@ -100,7 +100,7 @@ void split_buf_by_whitespace(const char* buf, size_t size, memory_reference_t** 
     size_t num_segments = 0;
     bool accumulating_data = false;
     for(size_t i = 0; i < size; i++) {
-        if(isspace(buf[i]) && accumulating_data) {
+        if(isspace(buf[i]) != 0 && accumulating_data) {
             num_segments++;
             accumulating_data = false;
         }
