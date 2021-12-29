@@ -31,6 +31,8 @@ static size_t count_unique_chars(const char* const buf, size_t len)
         }
     }
 
+    free(unique_chars);
+
     return num_unique_chars;
 }
 
@@ -78,6 +80,7 @@ static size_t count_unanimous_answers(const char* const buf, size_t len)
         }
     }
 
+    free(answers);
     free(participant_answers_mem_ref);
 
     return count;
