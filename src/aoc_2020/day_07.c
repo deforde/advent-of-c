@@ -9,7 +9,6 @@
 #include <unity.h>
 
 #include "../utility.h"
-#include "unity_internals.h"
 
 typedef struct {
     char* bag_type;
