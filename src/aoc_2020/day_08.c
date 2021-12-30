@@ -1,4 +1,4 @@
-#include "day_07.h"
+#include "day_08.h"
 
 #include <assert.h>
 #include <ctype.h>
@@ -131,7 +131,7 @@ void day_08_part_1_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_08_part_1_example.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     int64_t ans = 0;
     solve_part_1(input, size, &ans);
@@ -147,7 +147,7 @@ void day_08_part_1_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_08_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     int64_t ans = 0;
     solve_part_1(input, size, &ans);
@@ -163,7 +163,7 @@ void day_08_part_2_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_08_part_1_example.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve_part_2(input, size);
 
@@ -178,7 +178,7 @@ void day_08_part_2_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_08_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve_part_2(input, size);
 

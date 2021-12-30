@@ -69,7 +69,7 @@ void day_03_part_1_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_03_part_1_example.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     slope_t slope = {
         .dx = 3,
@@ -87,7 +87,7 @@ void day_03_part_1_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_03_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     slope_t slope = {
         .dx = 3,
@@ -105,7 +105,7 @@ void day_03_part_2_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_03_part_1_example.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     slope_t slopes[5];
     slopes[0].dx = 1;
@@ -131,7 +131,7 @@ void day_03_part_2_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_03_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     slope_t slopes[5];
     slopes[0].dx = 1;

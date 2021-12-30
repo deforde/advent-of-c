@@ -9,4 +9,5 @@ PRIVATE
     day_07.c
     day_08.c
     day_09.c
+    day_10.c
 )

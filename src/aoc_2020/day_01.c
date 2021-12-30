@@ -65,7 +65,7 @@ void day_01_part_1_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_01_part_1_example.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve(input, size, 2020, 2);
 
@@ -80,7 +80,7 @@ void day_01_part_1_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_01_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve(input, size, 2020, 2);
 
@@ -95,7 +95,7 @@ void day_01_part_2_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_01_part_1_example.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve(input, size, 2020, 3);
 
@@ -110,7 +110,7 @@ void day_01_part_2_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_01_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve(input, size, 2020, 3);
 

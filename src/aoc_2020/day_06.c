@@ -128,7 +128,7 @@ void day_06_part_1_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_06_part_1_example.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve_part_1(input, size);
     TEST_ASSERT_EQUAL_UINT64(11, ans);
@@ -142,7 +142,7 @@ void day_06_part_1_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_06_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve_part_1(input, size);
     TEST_ASSERT_EQUAL_UINT64(6437, ans);
@@ -156,7 +156,7 @@ void day_06_part_2_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_06_part_1_example.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve_part_2(input, size);
     TEST_ASSERT_EQUAL_UINT64(6, ans);
@@ -170,7 +170,7 @@ void day_06_part_2_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_06_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve_part_2(input, size);
     TEST_ASSERT_EQUAL_UINT64(3229, ans);

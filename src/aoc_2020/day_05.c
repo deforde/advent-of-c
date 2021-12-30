@@ -14,6 +14,9 @@ static void get_seat_coords(const char* const boarding_pass, size_t len, uint64_
     *row = 0;
     *col = 0;
     assert(len == 10);
+    if(len != 10) {
+        return;
+    }
 
     uint64_t min_row = 0;
     uint64_t max_row = 127;
@@ -117,7 +120,7 @@ void day_05_part_1_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_05_part_1_example.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve_part_1(input, size);
     TEST_ASSERT_EQUAL_UINT64(820, ans);
@@ -131,7 +134,7 @@ void day_05_part_1_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_05_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve_part_1(input, size);
     TEST_ASSERT_EQUAL_UINT64(933, ans);
@@ -145,7 +148,7 @@ void day_05_part_2_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_05_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const uint64_t ans = solve_part_2(input, size);
     TEST_ASSERT_EQUAL_UINT64(711, ans);

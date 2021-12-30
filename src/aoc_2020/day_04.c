@@ -27,6 +27,10 @@ static void populate_passport_kvpair(passport_t* const passport, const char* con
 {
     assert(key_len == 3);
     assert(val_len <= PASSPORT_MAX_VAL_LEN);
+    if(key_len != 3)
+        return;
+    if(val_len > PASSPORT_MAX_VAL_LEN)
+        return;
 
     if(memcmp(key, "byr", 3) == 0) {
         memcpy(passport->byr, val, val_len);
@@ -232,7 +236,7 @@ void day_04_part_1_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_04_part_1_example.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const size_t ans = solve_part_1(input, size);
     TEST_ASSERT_EQUAL_UINT64(2, ans);
@@ -246,7 +250,7 @@ void day_04_part_1_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_04_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const size_t ans = solve_part_1(input, size);
     TEST_ASSERT_EQUAL_UINT64(245, ans);
@@ -260,7 +264,7 @@ void day_04_part_2_example_1()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_04_part_2_example_1.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const size_t ans = solve_part_2(input, size);
     TEST_ASSERT_EQUAL_UINT64(0, ans);
@@ -274,7 +278,7 @@ void day_04_part_2_example_2()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_04_part_2_example_2.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const size_t ans = solve_part_2(input, size);
     TEST_ASSERT_EQUAL_UINT64(4, ans);
@@ -288,7 +292,7 @@ void day_04_part_2_problem()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_04_part_1_input.txt", &input, &size);
-    assert(success);
+    TEST_ASSERT_TRUE(success);
 
     const size_t ans = solve_part_2(input, size);
     TEST_ASSERT_EQUAL_UINT64(133, ans);
