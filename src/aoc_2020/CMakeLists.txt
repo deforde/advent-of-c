@@ -1,14 +1,6 @@
+file(GLOB SOURCES *.c)
+
 target_sources(advent-of-c
 PRIVATE
-    day_01.c
-    day_02.c
-    day_03.c
-    day_04.c
-    day_05.c
-    day_06.c
-    day_07.c
-    day_08.c
-    day_09.c
-    day_10.c
-    day_11.c
+    ${SOURCES}
 )

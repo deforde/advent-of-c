@@ -304,5 +304,5 @@ void day_11_part_2_problem()
 
     free(input);
 
-    TEST_ASSERT_EQUAL_UINT64(2050, ans);
+    TEST_ASSERT_EQUAL_UINT64(1990, ans);
 }
