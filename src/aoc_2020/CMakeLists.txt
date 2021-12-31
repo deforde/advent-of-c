@@ -10,4 +10,5 @@ PRIVATE
     day_08.c
     day_09.c
     day_10.c
+    day_11.c
 )
