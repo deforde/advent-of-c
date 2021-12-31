@@ -187,5 +187,5 @@ void day_13_part_2_problem()
 
     free(input);
 
-    TEST_ASSERT_EQUAL_UINT64(46530, ans);
+    TEST_ASSERT_EQUAL_UINT64(225850756401039, ans);
 }
