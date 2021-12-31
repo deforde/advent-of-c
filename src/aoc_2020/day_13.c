@@ -122,6 +122,9 @@ static uint64_t solve_part_2(const char* const input, size_t size)
     }
     x %= prod;
 
+    free(inv);
+    free(pp);
+    free(rem);
     free(buses);
 
     return x;
