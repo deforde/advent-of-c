@@ -217,6 +217,11 @@ static int64_t solve(const char* const input, size_t size)
         free(other_tickets[i].values);
     }
     free(other_tickets);
+    for(size_t i = 0; i < n_categories; i++) {
+        free(categories[i].name);
+        free(categories[i].ranges);
+    }
+    free(categories);
     free(block_mem_refs);
 
     return sum_invalid_values;
