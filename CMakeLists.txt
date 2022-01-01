@@ -12,4 +12,4 @@ include_directories(unity PUBLIC $ENV{TTS_UNITY_DIR}/src)
 add_subdirectory(src)
 add_subdirectory(src/aoc_2020)
 
-target_link_libraries(advent-of-c unity)
+target_link_libraries(advent-of-c unity m)

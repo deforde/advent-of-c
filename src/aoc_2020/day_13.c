@@ -102,8 +102,6 @@ static uint64_t solve_part_2(const char* const input, size_t size)
 
     for(size_t i = 0; i < n_buses; i++) {
         rem[i] = (buses[i].id - buses[i].pos % buses[i].id) % buses[i].id;
-    }
-    for(size_t i = 0; i < n_buses; i++) {
         prod *= buses[i].id;
     }
     for(size_t i = 0; i < n_buses; i++) {
