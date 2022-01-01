@@ -28,6 +28,11 @@ typedef struct {
     size_t n_values;
 } ticket_t;
 
+typedef struct {
+    size_t* possible_category_indices;
+    size_t n_possible_category_indices;
+} pos_category_indices_t;
+
 static void extract_category_ranges(const char* const category_ranges_buf, size_t len, category_t** output_categories, size_t* output_n_categories)
 {
     memory_reference_t* category_mem_refs = NULL;
@@ -158,7 +163,7 @@ static void extract_other_tickets(const char* const block, size_t block_size, ti
     free(line_mem_refs);
 }
 
-static int64_t solve(const char* const input, size_t size)
+static void extract_data(const char* const input, size_t size, ticket_t* my_ticket, ticket_t** other_tickets, size_t* n_other_tickets, category_t** categories, size_t* n_categories)
 {
     memory_reference_t* block_mem_refs = NULL;
     size_t n_blocks = 0;
@@ -166,20 +171,82 @@ static int64_t solve(const char* const input, size_t size)
 
     const char* const block_0_buf = &input[block_mem_refs[0].offset];
     const size_t block_0_len = block_mem_refs[0].size;
-    category_t* categories = NULL;
-    size_t n_categories = 0;
-    extract_category_ranges(block_0_buf, block_0_len, &categories, &n_categories);
+    *categories = NULL;
+    *n_categories = 0;
+    extract_category_ranges(block_0_buf, block_0_len, categories, n_categories);
 
     const char* const block_1_buf = &input[block_mem_refs[1].offset];
     const size_t block_1_len = block_mem_refs[1].size;
-    ticket_t my_ticket;
-    extract_my_ticket(block_1_buf, block_1_len, &my_ticket);
+    extract_my_ticket(block_1_buf, block_1_len, my_ticket);
 
     const char* const block_2_buf = &input[block_mem_refs[2].offset];
     const size_t block_2_len = block_mem_refs[2].size;
+    *other_tickets = NULL;
+    *n_other_tickets = 0;
+    extract_other_tickets(block_2_buf, block_2_len, other_tickets, n_other_tickets);
+
+    free(block_mem_refs);
+}
+
+static void remove_invalid_tickets(ticket_t** tickets, size_t* n_tickets, const category_t* const categories, size_t n_categories)
+{
+    ticket_t* other_tickets = *tickets;
+    size_t n_other_tickets = *n_tickets;
+
+    for(size_t ticket_idx = 0; ticket_idx < n_other_tickets;) {
+        ticket_t* ticket = &other_tickets[ticket_idx];
+        bool is_ticket_valid = true;
+
+        for(size_t value_idx = 0; value_idx < ticket->n_values; value_idx++) {
+            const uint64_t value = ticket->values[value_idx];
+            bool is_value_valid = false;
+
+            for(size_t category_idx = 0; category_idx < n_categories; category_idx++) {
+                const category_t* const category = &categories[category_idx];
+
+                for(size_t range_idx = 0; range_idx < category->n_ranges; range_idx++) {
+                    const uint64_t min_val = category->ranges[range_idx].min;
+                    const uint64_t max_val = category->ranges[range_idx].max;
+                    if(value >= min_val && value <= max_val) {
+                        is_value_valid = true;
+                        break;
+                    }
+                }
+
+                if(is_value_valid) {
+                    break;
+                }
+            }
+
+            if(!is_value_valid) {
+                is_ticket_valid = false;
+                break;
+            }
+        }
+
+        if(!is_ticket_valid) {
+            free(other_tickets[ticket_idx].values);
+            other_tickets[ticket_idx].n_values = other_tickets[n_other_tickets - 1].n_values;
+            other_tickets[ticket_idx].values = other_tickets[n_other_tickets - 1].values;
+            n_other_tickets--;
+        }
+        else {
+            ticket_idx++;
+        }
+    }
+
+    *n_tickets = n_other_tickets;
+}
+
+static int64_t solve_part_1(const char* const input, size_t size)
+{
+    category_t* categories = NULL;
+    size_t n_categories = 0;
+    ticket_t my_ticket;
     ticket_t* other_tickets = NULL;
     size_t n_other_tickets = 0;
-    extract_other_tickets(block_2_buf, block_2_len, &other_tickets, &n_other_tickets);
+
+    extract_data(input, size, &my_ticket, &other_tickets, &n_other_tickets, &categories, &n_categories);
 
     uint64_t sum_invalid_values = 0;
     for(size_t ticket_idx = 0; ticket_idx < n_other_tickets; ticket_idx++) {
@@ -222,9 +289,139 @@ static int64_t solve(const char* const input, size_t size)
         free(categories[i].ranges);
     }
     free(categories);
-    free(block_mem_refs);
 
     return sum_invalid_values;
+}
+
+static void eliminate_possible_categories(uint64_t value, size_t pos, pos_category_indices_t* possible_categories_per_pos, const category_t* categories, size_t n_categories)
+{
+    for(size_t category_idx = 0; category_idx < n_categories; category_idx++) {
+        const category_t* category = &categories[category_idx];
+        bool valid_range_found = false;
+
+        for(size_t range_idx = 0; range_idx < category->n_ranges; range_idx++) {
+            range_t* range = &category->ranges[range_idx];
+            if(value >= range->min && value <= range->max) {
+                valid_range_found = true;
+                break;
+            }
+        }
+
+        if(!valid_range_found) {
+            pos_category_indices_t* pos_categories = &possible_categories_per_pos[pos];
+            for(size_t pos_category_idx = 0; pos_category_idx < pos_categories->n_possible_category_indices; pos_category_idx++) {
+                if(pos_categories->possible_category_indices[pos_category_idx] == category_idx) {
+                    pos_categories->possible_category_indices[pos_category_idx] = pos_categories->possible_category_indices[pos_categories->n_possible_category_indices - 1];
+                    pos_categories->n_possible_category_indices--;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+static bool are_category_ambiguities_eliminated(pos_category_indices_t* possible_categories_per_pos, size_t n_positions)
+{
+    for(size_t i = 0; i < n_positions; i++) {
+        if(possible_categories_per_pos[i].n_possible_category_indices > 1) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static void disambiguate_possible_categories(pos_category_indices_t* possible_categories_per_pos, size_t n_positions)
+{
+    while(!are_category_ambiguities_eliminated(possible_categories_per_pos, n_positions)) {
+        for(size_t i = 0; i < n_positions; i++) {
+            pos_category_indices_t* this_pos_categories = &possible_categories_per_pos[i];
+            if(this_pos_categories->n_possible_category_indices == 1) {
+                for(size_t j = 0; j < n_positions; j++) {
+                    if(i != j && possible_categories_per_pos[j].n_possible_category_indices > 1) {
+                        pos_category_indices_t* other_pos_categories = &possible_categories_per_pos[j];
+                        for(size_t k = 0; k < other_pos_categories->n_possible_category_indices; k++) {
+                            if(other_pos_categories->possible_category_indices[k] == this_pos_categories->possible_category_indices[0]) {
+                                other_pos_categories->possible_category_indices[k] = other_pos_categories->possible_category_indices[other_pos_categories->n_possible_category_indices - 1];
+                                other_pos_categories->n_possible_category_indices--;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+static int64_t solve_part_2(const char* const input, size_t size)
+{
+    category_t* categories = NULL;
+    size_t n_categories = 0;
+    ticket_t my_ticket;
+    ticket_t* other_tickets = NULL;
+    size_t n_other_tickets = 0;
+
+    extract_data(input, size, &my_ticket, &other_tickets, &n_other_tickets, &categories, &n_categories);
+
+    remove_invalid_tickets(&other_tickets, &n_other_tickets, categories, n_categories);
+
+    pos_category_indices_t* possible_categories_per_pos = (pos_category_indices_t*)malloc(my_ticket.n_values * sizeof(pos_category_indices_t));
+    for(size_t i = 0; i < my_ticket.n_values; i++) {
+        possible_categories_per_pos[i].n_possible_category_indices = n_categories;
+        possible_categories_per_pos[i].possible_category_indices = (size_t*)malloc(n_categories * sizeof(size_t));
+        for(size_t j = 0; j < n_categories; j++) {
+            possible_categories_per_pos[i].possible_category_indices[j] = j;
+        }
+    }
+
+    for(size_t pos = 0; pos < my_ticket.n_values; pos++) {
+        const uint64_t my_ticket_val = my_ticket.values[pos];
+        eliminate_possible_categories(my_ticket_val, pos, possible_categories_per_pos, categories, n_categories);
+
+        for(size_t other_ticket_idx = 0; other_ticket_idx < n_other_tickets; other_ticket_idx++) {
+            const uint64_t other_ticket_value = other_tickets[other_ticket_idx].values[pos];
+            eliminate_possible_categories(other_ticket_value, pos, possible_categories_per_pos, categories, n_categories);
+        }
+    }
+
+    disambiguate_possible_categories(possible_categories_per_pos, my_ticket.n_values);
+
+    size_t* category_indices_of_interest = (size_t*)malloc(n_categories * sizeof(size_t));
+    size_t n_category_indices_of_interest = 0;
+    for(size_t i = 0; i < n_categories; i++) {
+        if(strlen(categories[i].name) >= 9 && memcmp(categories[i].name, "departure", 9) == 0) {
+            category_indices_of_interest[n_category_indices_of_interest++] = i;
+        }
+    }
+    assert(n_category_indices_of_interest == 6);
+
+    uint64_t product = 1;
+    for(size_t i = 0; i < n_category_indices_of_interest; i++) {
+        for(size_t j = 0; j < my_ticket.n_values; j++) {
+            if(possible_categories_per_pos[j].possible_category_indices[0] == category_indices_of_interest[i]) {
+                product *= my_ticket.values[j];
+                break;
+            }
+        }
+    }
+
+    free(category_indices_of_interest);
+    for(size_t i = 0; i < my_ticket.n_values; i++) {
+        free(possible_categories_per_pos[i].possible_category_indices);
+    }
+    free(possible_categories_per_pos);
+    free(my_ticket.values);
+    for(size_t i = 0; i < n_other_tickets; i++) {
+        free(other_tickets[i].values);
+    }
+    free(other_tickets);
+    for(size_t i = 0; i < n_categories; i++) {
+        free(categories[i].name);
+        free(categories[i].ranges);
+    }
+    free(categories);
+
+    return product;
 }
 
 void day_16_part_1_example()
@@ -235,7 +432,7 @@ void day_16_part_1_example()
     const bool success = read_file_into_buf("../data/day_16_part_1_example.txt", &input, &size);
     TEST_ASSERT_TRUE(success);
 
-    const int64_t ans = solve(input, size);
+    const int64_t ans = solve_part_1(input, size);
 
     free(input);
 
@@ -250,26 +447,11 @@ void day_16_part_1_problem()
     const bool success = read_file_into_buf("../data/day_16_part_1_input.txt", &input, &size);
     TEST_ASSERT_TRUE(success);
 
-    const int64_t ans = solve(input, size);
+    const int64_t ans = solve_part_1(input, size);
 
     free(input);
 
     TEST_ASSERT_EQUAL_UINT64(20058, ans);
-}
-
-void day_16_part_2_example()
-{
-    char* input = NULL;
-    size_t size = 0;
-
-    const bool success = read_file_into_buf("../data/day_16_part_1_example.txt", &input, &size);
-    TEST_ASSERT_TRUE(success);
-
-    const uint64_t ans = solve(input, size);
-
-    free(input);
-
-    TEST_ASSERT_EQUAL_UINT64(175594, ans);
 }
 
 void day_16_part_2_problem()
@@ -280,9 +462,9 @@ void day_16_part_2_problem()
     const bool success = read_file_into_buf("../data/day_16_part_1_input.txt", &input, &size);
     TEST_ASSERT_TRUE(success);
 
-    const uint64_t ans = solve(input, size);
+    const uint64_t ans = solve_part_2(input, size);
 
     free(input);
 
-    TEST_ASSERT_EQUAL_UINT64(8546398, ans);
+    TEST_ASSERT_EQUAL_UINT64(366871907221, ans);
 }
