@@ -152,7 +152,7 @@ static void get_adjacent_coords(coord_t origin, size_t n_dims, coord_t** output_
             get_adjacent_coords_4d(origin, output_adj_coords, output_n_adjacent_coords);
         break;
         default:
-        assert(false);
+            assert(false);
         break;
     }
 }
