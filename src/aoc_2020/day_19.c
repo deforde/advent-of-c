@@ -26,31 +26,47 @@ typedef struct {
     int32_t val;
 } node_t;
 
-static bool recursive_solve(const node_t* const nodes, const char* const buf, size_t buf_size, size_t pos, size_t node_idx)
+static bool recursive_solve(const node_t* const nodes, const char* const buf, size_t buf_size, size_t* pos, size_t node_idx)
 {
     const node_t* const node = &nodes[node_idx];
     if(node->val != -1) {
-        return node->val == buf[pos];
+        const bool match_found = node->val == buf[*pos];
+        if(match_found) {
+            (*pos)++;
+        }
+        return match_found;
     }
     for(size_t sup_idx = 0; sup_idx < node->children.len; ++sup_idx) {
         const vec_t* const child_set = &node->children.data[sup_idx];
         bool match_found = true;
-        size_t temp_pos = pos;
+        size_t temp_pos = *pos;
         for(size_t sub_idx = 0; sub_idx < child_set->len; ++sub_idx) {
-            match_found &= recursive_solve(nodes, buf, buf_size, temp_pos, child_set->data[sub_idx]);
+            match_found &= recursive_solve(nodes, buf, buf_size, &temp_pos, child_set->data[sub_idx]);
             if(!match_found) {
                 break;
             }
-            ++temp_pos;
         }
         if(match_found) {
+            *pos = temp_pos;
             return true;
         }
     }
     return false;
 }
 
-static void solve_part_1(const char* const input, size_t size)
+static void free_nodes(node_t* nodes, size_t n_nodes)
+{
+    for(size_t node_idx = 0; node_idx < n_nodes; ++node_idx) {
+        node_t* node = &nodes[node_idx];
+        for(size_t sup_idx = 0; sup_idx < node->children.len; ++sup_idx) {
+            free(node->children.data[sup_idx].data);
+        }
+        free(node->children.data);
+    }
+    free(nodes);
+}
+
+static bool process_rules(const char* const input, size_t size, node_t** output_nodes, size_t* n_output_nodes)
 {
     memory_reference_t* line_mem_refs = NULL;
     size_t n_lines = 0;
@@ -106,36 +122,70 @@ static void solve_part_1(const char* const input, size_t size)
                     temp[0] = rule_portion[node_indices_mem_refs[node_index_idx].offset];
                     node->children.data[rule_portion_idx].data[node_index_idx] = atoi(temp);
                 }
+
+                free(node_indices_mem_refs);
             }
+        }
+
+        free(rule_portion_mem_refs);
+    }
+
+    free(line_mem_refs);
+
+    *output_nodes = nodes;
+    *n_output_nodes = n_nodes;
+
+    return true;
+}
+
+static size_t process_test_block(const char* const input, size_t size, node_t* nodes)
+{
+    memory_reference_t* line_mem_refs = NULL;
+    size_t n_lines = 0;
+    split_buf_by_sequence(input, size, "\n", &line_mem_refs, &n_lines);
+
+    size_t valid_test_string_count = 0;
+
+    for(size_t line_idx = 0; line_idx < n_lines; line_idx++) {
+        const char* const test_string = &input[line_mem_refs[line_idx].offset];
+        const size_t test_string_len = line_mem_refs[line_idx].size;
+
+        char temp[256] = {0};
+        memcpy(temp, test_string, test_string_len);
+
+        size_t pos = 0;
+        if(recursive_solve(nodes, temp, test_string_len, &pos, 0) && pos == test_string_len) {
+            ++valid_test_string_count;
         }
     }
 
     free(line_mem_refs);
 
-    {
-        const char* const test_string = "aba";
-        const bool string_valid = recursive_solve(nodes, test_string, strlen(test_string), 0, 0);
-        printf("String: \"%s\" valid? %s\n", test_string, string_valid ? "True" : "False");
-    }
-    {
-        const char* const test_string = "aab";
-        const bool string_valid = recursive_solve(nodes, test_string, strlen(test_string), 0, 0);
-        printf("String: \"%s\" valid? %s\n", test_string, string_valid ? "True" : "False");
-    }
-    {
-        const char* const test_string = "abb";
-        const bool string_valid = recursive_solve(nodes, test_string, strlen(test_string), 0, 0);
-        printf("String: \"%s\" valid? %s\n", test_string, string_valid ? "True" : "False");
-    }
+    return valid_test_string_count;
+}
 
-    for(size_t node_idx = 0; node_idx < n_nodes; ++node_idx) {
-        node_t* node = &nodes[node_idx];
-        for(size_t sup_idx = 0; sup_idx < node->children.len; ++sup_idx) {
-            free(node->children.data[sup_idx].data);
-        }
-        free(node->children.data);
-    }
-    free(nodes);
+static size_t solve_part_1(const char* const input, size_t size)
+{
+    memory_reference_t* block_mem_refs = NULL;
+    size_t n_blocks = 0;
+    split_buf_by_sequence(input, size, "\n\n", &block_mem_refs, &n_blocks);
+
+    const char* const rule_block = &input[block_mem_refs[0].offset];
+    const size_t rule_block_len = block_mem_refs[0].size;
+
+    const char* const test_block = &input[block_mem_refs[1].offset];
+    const size_t test_block_len = block_mem_refs[1].size;
+
+    node_t* nodes = NULL;
+    size_t n_nodes = 0;
+    process_rules(rule_block, rule_block_len, &nodes, &n_nodes);
+
+    const size_t valid_test_string_count = process_test_block(test_block, test_block_len, nodes);
+
+    free_nodes(nodes, n_nodes);
+    free(block_mem_refs);
+
+    return valid_test_string_count;
 }
 
 void day_19_part_1_example()
@@ -146,11 +196,10 @@ void day_19_part_1_example()
     const bool success = read_file_into_buf("../data/day_19_part_1_example.txt", &input, &size);
     TEST_ASSERT_TRUE(success);
 
-    // const int64_t ans = solve_part_1(input, size);
-    solve_part_1(input, size);
+    const size_t ans = solve_part_1(input, size);
 
     free(input);
 
-    // TEST_ASSERT_EQUAL_UINT64(26335, ans);
+    TEST_ASSERT_EQUAL_size_t(2, ans);
 }
 
