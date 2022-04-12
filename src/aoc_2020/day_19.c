@@ -225,3 +225,18 @@ void day_19_part_1_problem()
     TEST_ASSERT_EQUAL_size_t(272, ans);
 }
 
+void day_19_part_2_problem()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_19_part_2_input.txt", &input, &size);
+    TEST_ASSERT_TRUE(success);
+
+    const size_t ans = solve_part_1(input, size);
+
+    free(input);
+
+    TEST_ASSERT_EQUAL_size_t(272, ans);
+}
+
