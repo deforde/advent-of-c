@@ -80,16 +80,19 @@ static bool process_rules(const char* const input, size_t size, node_t** output_
         const char* const rule = &input[line_mem_refs[line_idx].offset];
         const size_t len = line_mem_refs[line_idx].size;
 
-        node_t* node = &nodes[line_idx];
-        node->children.data = NULL;
-        node->children.len = 0;
-        node->val = -1;
-
         const char* rule_content = strchr(rule, ':');
         if(!rule_content) {
             continue;
         }
+        char temp[128] = {0};
+        memcpy(temp, rule, rule_content - rule);
+        const size_t node_idx = atoi(temp);
         rule_content += 2;
+
+        node_t* node = &nodes[node_idx];
+        node->children.data = NULL;
+        node->children.len = 0;
+        node->val = -1;
 
         memory_reference_t* rule_portion_mem_refs = NULL;
         size_t n_rule_portions = 0;
@@ -118,8 +121,12 @@ static bool process_rules(const char* const input, size_t size, node_t** output_
                 node->children.data[rule_portion_idx].len = n_node_indices;
 
                 for(size_t node_index_idx = 0; node_index_idx < n_node_indices; ++node_index_idx) {
-                    char temp[2] = {0};
-                    temp[0] = rule_portion[node_indices_mem_refs[node_index_idx].offset];
+                    const char* const node_index_string = &rule_portion[node_indices_mem_refs[node_index_idx].offset];
+                    const size_t node_index_string_len = node_indices_mem_refs[node_index_idx].size;
+
+                    char temp[128] = {0};
+                    memcpy(temp, node_index_string, node_index_string_len);
+
                     node->children.data[rule_portion_idx].data[node_index_idx] = atoi(temp);
                 }
 
@@ -201,5 +208,20 @@ void day_19_part_1_example()
     free(input);
 
     TEST_ASSERT_EQUAL_size_t(2, ans);
+}
+
+void day_19_part_1_problem()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_19_part_1_input.txt", &input, &size);
+    TEST_ASSERT_TRUE(success);
+
+    const size_t ans = solve_part_1(input, size);
+
+    free(input);
+
+    TEST_ASSERT_EQUAL_size_t(272, ans);
 }
 

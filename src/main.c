@@ -122,6 +122,7 @@ int main()
     // RUN_TEST(day_18_part_2_problem);
 
     RUN_TEST(day_19_part_1_example);
+    RUN_TEST(day_19_part_1_problem);
 
     return UNITY_END();
 }
