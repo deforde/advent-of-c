@@ -29,44 +29,33 @@ typedef struct {
 static bool recursive_solve(const node_t* const nodes, const char* const buf, size_t buf_size, size_t* pos, size_t node_idx)
 {
     assert(*pos < buf_size);
-    printf("node_idx = %lu\n", node_idx);
     const node_t* const node = &nodes[node_idx];
     if(node->val != -1) {
         const bool match_found = node->val == buf[*pos];
         if(match_found) {
-            printf("node_idx = %lu, match found for buf pos %lu (%c)\n", node_idx, *pos, buf[*pos]);
             (*pos)++;
-        }
-        else {
-            printf("node_idx = %lu, match NOT found for buf pos %lu (%c)\n", node_idx, *pos, buf[*pos]);
         }
         return match_found;
     }
     for(size_t sup_idx = 0; sup_idx < node->children.len; ++sup_idx) {
-        printf("node_idx = %lu, searching child set %lu\n", node_idx, sup_idx);
         const vec_t* const child_set = &node->children.data[sup_idx];
         bool match_found = true;
         size_t temp_pos = *pos;
         for(size_t sub_idx = 0; sub_idx < child_set->len; ++sub_idx) {
-            printf("node_idx = %lu, searching child set idx %lu\n", node_idx, sub_idx);
             match_found &= recursive_solve(nodes, buf, buf_size, &temp_pos, child_set->data[sub_idx]);
             if(!match_found) {
-                printf("node_idx = %lu, match not found, walking back (child set %lu)\n", node_idx, sup_idx);
                 break;
             }
             if(temp_pos == buf_size && sub_idx < (child_set->len - 1)) {
                 match_found = false;
-                printf("node_idx = %lu, end of string reached, but end of rule not reached, breaking out\n", node_idx);
                 break;
             }
         }
         if(match_found) {
-            printf("node_idx = %lu, full match for child rule set found, returning true\n", node_idx);
             *pos = temp_pos;
             return true;
         }
     }
-    printf("node_idx = %lu, no match could be found, returning false\n", node_idx);
     return false;
 }
 
@@ -80,6 +69,26 @@ static void free_nodes(node_t* nodes, size_t n_nodes)
         free(node->children.data);
     }
     free(nodes);
+}
+
+static void clone_nodes(node_t* input_nodes, size_t n_input_nodes, node_t** output_nodes, size_t* n_output_nodes)
+{
+    *output_nodes = (node_t*)malloc(n_input_nodes * sizeof(node_t));
+    *n_output_nodes = n_input_nodes;
+
+    for(size_t node_idx = 0; node_idx < n_input_nodes; ++node_idx) {
+        node_t* node = &input_nodes[node_idx];
+
+        (*output_nodes)[node_idx].val = node->val;
+        (*output_nodes)[node_idx].children.len = node->children.len;
+        (*output_nodes)[node_idx].children.data = (vec_t*)malloc(node->children.len * sizeof(vec_t));
+
+        for(size_t sup_idx = 0; sup_idx < node->children.len; ++sup_idx) {
+            (*output_nodes)[node_idx].children.data[sup_idx].len = node->children.data[sup_idx].len;
+            (*output_nodes)[node_idx].children.data[sup_idx].data = (size_t*)malloc(node->children.data[sup_idx].len * sizeof(size_t));
+            memcpy((*output_nodes)[node_idx].children.data[sup_idx].data, node->children.data[sup_idx].data, node->children.data[sup_idx].len * sizeof(size_t));
+        }
+    }
 }
 
 static bool process_rules(const char* const input, size_t size, node_t** output_nodes, size_t* n_output_nodes)
@@ -194,9 +203,60 @@ static size_t process_test_block(const char* const input, size_t size, node_t* n
 
         size_t pos = 0;
         if(recursive_solve(nodes, temp, test_string_len, &pos, 0) && pos == test_string_len) {
-            // printf("Match found: %s\n", temp);
             ++valid_test_string_count;
         }
+    }
+
+    free(line_mem_refs);
+
+    return valid_test_string_count;
+}
+
+static size_t process_test_block_2(const char* const input, size_t size, node_t* nodes, size_t n_nodes)
+{
+    memory_reference_t* line_mem_refs = NULL;
+    size_t n_lines = 0;
+    split_buf_by_sequence(input, size, "\n", &line_mem_refs, &n_lines);
+
+    size_t valid_test_string_count = 0;
+
+    for(size_t line_idx = 0; line_idx < n_lines; line_idx++) {
+        const char* const test_string = &input[line_mem_refs[line_idx].offset];
+        const size_t test_string_len = line_mem_refs[line_idx].size;
+
+        char temp[256] = {0};
+        memcpy(temp, test_string, test_string_len);
+
+        node_t* local_nodes = NULL;
+        size_t n_local_nodes = 0;
+        clone_nodes(nodes, n_nodes, &local_nodes, &n_local_nodes);
+
+        for(size_t add_rule_42 = 0; add_rule_42 < 10; ++add_rule_42) {
+            for(size_t add_rule_31 = 0; add_rule_31 < 10; ++add_rule_31) {
+                free(local_nodes[0].children.data[0].data);
+                local_nodes[0].children.data[0].len = 3 + add_rule_42 + add_rule_31;
+                local_nodes[0].children.data[0].data = (size_t*)malloc(local_nodes[0].children.data[0].len * sizeof(size_t));
+                local_nodes[0].children.data[0].data[0] = 42;
+                local_nodes[0].children.data[0].data[1] = 42;
+                local_nodes[0].children.data[0].data[local_nodes[0].children.data[0].len - 1] = 31;
+
+                for(size_t i = 0; i < add_rule_42; ++i) {
+                    local_nodes[0].children.data[0].data[2 + i] = 42;
+                }
+                for(size_t i = 0; i < add_rule_31; ++i) {
+                    local_nodes[0].children.data[0].data[2 + add_rule_42 + i] = 31;
+                }
+
+                size_t pos = 0;
+                if(recursive_solve(local_nodes, temp, test_string_len, &pos, 0) && pos == test_string_len) {
+                    ++valid_test_string_count;
+                    goto search_complete;
+                }
+            }
+        }
+
+search_complete:
+        free_nodes(local_nodes, n_local_nodes);
     }
 
     free(line_mem_refs);
@@ -221,6 +281,37 @@ static size_t solve_part_1(const char* const input, size_t size)
     process_rules(rule_block, rule_block_len, &nodes, &n_nodes);
 
     const size_t valid_test_string_count = process_test_block(test_block, test_block_len, nodes);
+
+    free_nodes(nodes, n_nodes);
+    free(block_mem_refs);
+
+    return valid_test_string_count;
+}
+
+static size_t solve_part_2(const char* const input, size_t size)
+{
+    memory_reference_t* block_mem_refs = NULL;
+    size_t n_blocks = 0;
+    split_buf_by_sequence(input, size, "\n\n", &block_mem_refs, &n_blocks);
+
+    const char* const rule_block = &input[block_mem_refs[0].offset];
+    const size_t rule_block_len = block_mem_refs[0].size;
+
+    const char* const test_block = &input[block_mem_refs[1].offset];
+    const size_t test_block_len = block_mem_refs[1].size;
+
+    node_t* nodes = NULL;
+    size_t n_nodes = 0;
+    process_rules(rule_block, rule_block_len, &nodes, &n_nodes);
+
+    nodes[0].children.data[0].len = 3;
+    free(nodes[0].children.data[0].data);
+    nodes[0].children.data[0].data = (size_t*)malloc(nodes[0].children.data[0].len * sizeof(size_t));
+    nodes[0].children.data[0].data[0] = 42;
+    nodes[0].children.data[0].data[1] = 42;
+    nodes[0].children.data[0].data[2] = 31;
+
+    const size_t valid_test_string_count = process_test_block_2(test_block, test_block_len, nodes, n_nodes);
 
     free_nodes(nodes, n_nodes);
     free(block_mem_refs);
@@ -281,7 +372,7 @@ void day_19_part_2_example_2()
     const bool success = read_file_into_buf("../data/day_19_part_2_example_2.txt", &input, &size);
     TEST_ASSERT_TRUE(success);
 
-    const size_t ans = solve_part_1(input, size);
+    const size_t ans = solve_part_2(input, size);
 
     free(input);
 
@@ -296,7 +387,7 @@ void day_19_part_2_problem()
     const bool success = read_file_into_buf("../data/day_19_part_2_input.txt", &input, &size);
     TEST_ASSERT_TRUE(success);
 
-    const size_t ans = solve_part_1(input, size);
+    const size_t ans = solve_part_2(input, size);
 
     free(input);
 
