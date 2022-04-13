@@ -248,11 +248,6 @@ static size_t process_test_block_2(const char* const input, size_t size, node_t*
                     local_nodes[0].children.data[0].data[local_nodes[0].children.data[0].len - 2 - i] = 31;
                 }
 
-                // printf("Trying rule 0: [ ");
-                // for(size_t i = 0; i < local_nodes[0].children.data[0].len; ++i) {
-                //     printf("%lu ", local_nodes[0].children.data[0].data[i]);
-                // }
-                // printf("]\n");
                 size_t pos = 0;
                 if(recursive_solve(local_nodes, temp, test_string_len, &pos, 0) && pos == test_string_len) {
                     ++valid_test_string_count;
