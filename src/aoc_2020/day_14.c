@@ -33,8 +33,8 @@ static void process_mem_instruction(const char* const instr, size_t len, uint64_
     *address = atoll(address_str);
     free(address_str);
 
-    char* value_str = malloc(len - (i + 4));
-    memset(value_str, 0, len - (i + 4));
+    char* value_str = malloc(len - (i + 4) + 1);
+    memset(value_str, 0, len - (i + 4) + 1);
     for(size_t j = i + 4; j < len; j++) {
         value_str[j - (i + 4)] = instr[j];
     }

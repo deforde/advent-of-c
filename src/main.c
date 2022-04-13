@@ -32,94 +32,94 @@ int main()
 {
     UNITY_BEGIN();
 
-    // RUN_TEST(day_01_part_1_example);
-    // RUN_TEST(day_01_part_1_problem);
-    // RUN_TEST(day_01_part_2_example);
-    // RUN_TEST(day_01_part_2_problem);
-    //
-    // RUN_TEST(day_02_part_1_example);
-    // RUN_TEST(day_02_part_1_problem);
-    // RUN_TEST(day_02_part_2_example);
-    // RUN_TEST(day_02_part_2_problem);
-    //
-    // RUN_TEST(day_03_part_1_example);
-    // RUN_TEST(day_03_part_1_problem);
-    // RUN_TEST(day_03_part_2_example);
-    // RUN_TEST(day_03_part_2_problem);
-    //
-    // RUN_TEST(day_04_part_1_example);
-    // RUN_TEST(day_04_part_1_problem);
-    // RUN_TEST(day_04_part_2_example_1);
-    // RUN_TEST(day_04_part_2_example_2);
-    // RUN_TEST(day_04_part_2_problem);
-    //
-    // RUN_TEST(day_05_part_1_example);
-    // RUN_TEST(day_05_part_1_problem);
-    // RUN_TEST(day_05_part_2_problem);
-    //
-    // RUN_TEST(day_06_part_1_example);
-    // RUN_TEST(day_06_part_1_problem);
-    // RUN_TEST(day_06_part_2_example);
-    // RUN_TEST(day_06_part_2_problem);
-    //
-    // RUN_TEST(day_07_part_1_example);
-    // RUN_TEST(day_07_part_1_problem);
-    // RUN_TEST(day_07_part_2_example);
-    // RUN_TEST(day_07_part_2_problem);
-    //
-    // RUN_TEST(day_08_part_1_example);
-    // RUN_TEST(day_08_part_1_problem);
-    // RUN_TEST(day_08_part_2_example);
-    // RUN_TEST(day_08_part_2_problem);
-    //
-    // RUN_TEST(day_09_part_1_example);
-    // RUN_TEST(day_09_part_1_problem);
-    // RUN_TEST(day_09_part_2_example);
-    // RUN_TEST(day_09_part_2_problem);
-    //
-    // RUN_TEST(day_10_part_1_example);
-    // RUN_TEST(day_10_part_1_problem);
-    // RUN_TEST(day_10_part_2_example);
-    // RUN_TEST(day_10_part_2_problem);
-    //
-    // RUN_TEST(day_11_part_1_example);
-    // RUN_TEST(day_11_part_1_problem);
-    // RUN_TEST(day_11_part_2_example);
-    // RUN_TEST(day_11_part_2_problem);
-    //
-    // RUN_TEST(day_12_part_1_example);
-    // RUN_TEST(day_12_part_1_problem);
-    // RUN_TEST(day_12_part_2_example);
-    // RUN_TEST(day_12_part_2_problem);
-    //
-    // RUN_TEST(day_13_part_1_example);
-    // RUN_TEST(day_13_part_1_problem);
-    // RUN_TEST(day_13_part_2_example);
-    // RUN_TEST(day_13_part_2_problem);
-    //
-    // RUN_TEST(day_14_part_1_example);
-    // RUN_TEST(day_14_part_1_problem);
-    // RUN_TEST(day_14_part_2_example);
-    // RUN_TEST(day_14_part_2_problem);
-    //
-    // RUN_TEST(day_15_part_1_example);
-    // RUN_TEST(day_15_part_1_problem);
-    // RUN_TEST(day_15_part_2_example);
-    // RUN_TEST(day_15_part_2_problem);
-    //
-    // RUN_TEST(day_16_part_1_example);
-    // RUN_TEST(day_16_part_1_problem);
-    // RUN_TEST(day_16_part_2_problem);
-    //
-    // RUN_TEST(day_17_part_1_example);
-    // RUN_TEST(day_17_part_1_problem);
-    // RUN_TEST(day_17_part_2_example);
-    // RUN_TEST(day_17_part_2_problem);
-    //
-    // RUN_TEST(day_18_part_1_example);
-    // RUN_TEST(day_18_part_1_problem);
-    // RUN_TEST(day_18_part_2_example);
-    // RUN_TEST(day_18_part_2_problem);
+    RUN_TEST(day_01_part_1_example);
+    RUN_TEST(day_01_part_1_problem);
+    RUN_TEST(day_01_part_2_example);
+    RUN_TEST(day_01_part_2_problem);
+
+    RUN_TEST(day_02_part_1_example);
+    RUN_TEST(day_02_part_1_problem);
+    RUN_TEST(day_02_part_2_example);
+    RUN_TEST(day_02_part_2_problem);
+
+    RUN_TEST(day_03_part_1_example);
+    RUN_TEST(day_03_part_1_problem);
+    RUN_TEST(day_03_part_2_example);
+    RUN_TEST(day_03_part_2_problem);
+
+    RUN_TEST(day_04_part_1_example);
+    RUN_TEST(day_04_part_1_problem);
+    RUN_TEST(day_04_part_2_example_1);
+    RUN_TEST(day_04_part_2_example_2);
+    RUN_TEST(day_04_part_2_problem);
+
+    RUN_TEST(day_05_part_1_example);
+    RUN_TEST(day_05_part_1_problem);
+    RUN_TEST(day_05_part_2_problem);
+
+    RUN_TEST(day_06_part_1_example);
+    RUN_TEST(day_06_part_1_problem);
+    RUN_TEST(day_06_part_2_example);
+    RUN_TEST(day_06_part_2_problem);
+
+    RUN_TEST(day_07_part_1_example);
+    RUN_TEST(day_07_part_1_problem);
+    RUN_TEST(day_07_part_2_example);
+    RUN_TEST(day_07_part_2_problem);
+
+    RUN_TEST(day_08_part_1_example);
+    RUN_TEST(day_08_part_1_problem);
+    RUN_TEST(day_08_part_2_example);
+    RUN_TEST(day_08_part_2_problem);
+
+    RUN_TEST(day_09_part_1_example);
+    RUN_TEST(day_09_part_1_problem);
+    RUN_TEST(day_09_part_2_example);
+    RUN_TEST(day_09_part_2_problem);
+
+    RUN_TEST(day_10_part_1_example);
+    RUN_TEST(day_10_part_1_problem);
+    RUN_TEST(day_10_part_2_example);
+    RUN_TEST(day_10_part_2_problem);
+
+    RUN_TEST(day_11_part_1_example);
+    RUN_TEST(day_11_part_1_problem);
+    RUN_TEST(day_11_part_2_example);
+    RUN_TEST(day_11_part_2_problem);
+
+    RUN_TEST(day_12_part_1_example);
+    RUN_TEST(day_12_part_1_problem);
+    RUN_TEST(day_12_part_2_example);
+    RUN_TEST(day_12_part_2_problem);
+
+    RUN_TEST(day_13_part_1_example);
+    RUN_TEST(day_13_part_1_problem);
+    RUN_TEST(day_13_part_2_example);
+    RUN_TEST(day_13_part_2_problem);
+
+    RUN_TEST(day_14_part_1_example);
+    RUN_TEST(day_14_part_1_problem);
+    RUN_TEST(day_14_part_2_example);
+    RUN_TEST(day_14_part_2_problem);
+
+    RUN_TEST(day_15_part_1_example);
+    RUN_TEST(day_15_part_1_problem);
+    RUN_TEST(day_15_part_2_example);
+    RUN_TEST(day_15_part_2_problem);
+
+    RUN_TEST(day_16_part_1_example);
+    RUN_TEST(day_16_part_1_problem);
+    RUN_TEST(day_16_part_2_problem);
+
+    RUN_TEST(day_17_part_1_example);
+    RUN_TEST(day_17_part_1_problem);
+    RUN_TEST(day_17_part_2_example);
+    RUN_TEST(day_17_part_2_problem);
+
+    RUN_TEST(day_18_part_1_example);
+    RUN_TEST(day_18_part_1_problem);
+    RUN_TEST(day_18_part_2_example);
+    RUN_TEST(day_18_part_2_problem);
 
     RUN_TEST(day_19_part_1_example);
     RUN_TEST(day_19_part_1_problem);

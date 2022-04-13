@@ -392,6 +392,6 @@ void day_19_part_2_problem()
 
     free(input);
 
-    TEST_ASSERT_EQUAL_size_t(272, ans);
+    TEST_ASSERT_EQUAL_size_t(374, ans);
 }
 
