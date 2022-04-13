@@ -231,22 +231,28 @@ static size_t process_test_block_2(const char* const input, size_t size, node_t*
         size_t n_local_nodes = 0;
         clone_nodes(nodes, n_nodes, &local_nodes, &n_local_nodes);
 
-        for(size_t add_rule_42 = 0; add_rule_42 < 10; ++add_rule_42) {
-            for(size_t add_rule_31 = 0; add_rule_31 < 10; ++add_rule_31) {
+        for(size_t add_rule_8 = 0; add_rule_8 < 10; ++add_rule_8) {
+            for(size_t add_rule_11 = 0; add_rule_11 < 10; ++add_rule_11) {
                 free(local_nodes[0].children.data[0].data);
-                local_nodes[0].children.data[0].len = 3 + add_rule_42 + add_rule_31;
+                local_nodes[0].children.data[0].len = 3 + add_rule_8 + add_rule_11 * 2;
                 local_nodes[0].children.data[0].data = (size_t*)malloc(local_nodes[0].children.data[0].len * sizeof(size_t));
                 local_nodes[0].children.data[0].data[0] = 42;
-                local_nodes[0].children.data[0].data[1] = 42;
+                local_nodes[0].children.data[0].data[add_rule_8 + 1] = 42;
                 local_nodes[0].children.data[0].data[local_nodes[0].children.data[0].len - 1] = 31;
 
-                for(size_t i = 0; i < add_rule_42; ++i) {
-                    local_nodes[0].children.data[0].data[2 + i] = 42;
+                for(size_t i = 0; i < add_rule_8; ++i) {
+                    local_nodes[0].children.data[0].data[1 + i] = 42;
                 }
-                for(size_t i = 0; i < add_rule_31; ++i) {
-                    local_nodes[0].children.data[0].data[2 + add_rule_42 + i] = 31;
+                for(size_t i = 0; i < add_rule_11; ++i) {
+                    local_nodes[0].children.data[0].data[add_rule_8 + 2 + i] = 42;
+                    local_nodes[0].children.data[0].data[local_nodes[0].children.data[0].len - 2 - i] = 31;
                 }
 
+                // printf("Trying rule 0: [ ");
+                // for(size_t i = 0; i < local_nodes[0].children.data[0].len; ++i) {
+                //     printf("%lu ", local_nodes[0].children.data[0].data[i]);
+                // }
+                // printf("]\n");
                 size_t pos = 0;
                 if(recursive_solve(local_nodes, temp, test_string_len, &pos, 0) && pos == test_string_len) {
                     ++valid_test_string_count;
