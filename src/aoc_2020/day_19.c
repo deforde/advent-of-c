@@ -45,6 +45,10 @@ static bool recursive_solve(const node_t* const nodes, const char* const buf, si
             if(!match_found) {
                 break;
             }
+            if(temp_pos == buf_size) {
+                *pos = temp_pos;
+                return true;
+            }
         }
         if(match_found) {
             *pos = temp_pos;
