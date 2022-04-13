@@ -28,33 +28,45 @@ typedef struct {
 
 static bool recursive_solve(const node_t* const nodes, const char* const buf, size_t buf_size, size_t* pos, size_t node_idx)
 {
+    assert(*pos < buf_size);
+    printf("node_idx = %lu\n", node_idx);
     const node_t* const node = &nodes[node_idx];
     if(node->val != -1) {
         const bool match_found = node->val == buf[*pos];
         if(match_found) {
+            printf("node_idx = %lu, match found for buf pos %lu (%c)\n", node_idx, *pos, buf[*pos]);
             (*pos)++;
+        }
+        else {
+            printf("node_idx = %lu, match NOT found for buf pos %lu (%c)\n", node_idx, *pos, buf[*pos]);
         }
         return match_found;
     }
     for(size_t sup_idx = 0; sup_idx < node->children.len; ++sup_idx) {
+        printf("node_idx = %lu, searching child set %lu\n", node_idx, sup_idx);
         const vec_t* const child_set = &node->children.data[sup_idx];
         bool match_found = true;
         size_t temp_pos = *pos;
         for(size_t sub_idx = 0; sub_idx < child_set->len; ++sub_idx) {
+            printf("node_idx = %lu, searching child set idx %lu\n", node_idx, sub_idx);
             match_found &= recursive_solve(nodes, buf, buf_size, &temp_pos, child_set->data[sub_idx]);
             if(!match_found) {
+                printf("node_idx = %lu, match not found, walking back (child set %lu)\n", node_idx, sup_idx);
                 break;
             }
-            if(temp_pos == buf_size) {
-                *pos = temp_pos;
-                return true;
+            if(temp_pos == buf_size && sub_idx < (child_set->len - 1)) {
+                match_found = false;
+                printf("node_idx = %lu, end of string reached, but end of rule not reached, breaking out\n", node_idx);
+                break;
             }
         }
         if(match_found) {
+            printf("node_idx = %lu, full match for child rule set found, returning true\n", node_idx);
             *pos = temp_pos;
             return true;
         }
     }
+    printf("node_idx = %lu, no match could be found, returning false\n", node_idx);
     return false;
 }
 
@@ -76,7 +88,22 @@ static bool process_rules(const char* const input, size_t size, node_t** output_
     size_t n_lines = 0;
     split_buf_by_sequence(input, size, "\n", &line_mem_refs, &n_lines);
 
-    const size_t n_nodes = n_lines;
+    size_t largest_node_idx = 0;
+    for(size_t line_idx = 0; line_idx < n_lines; line_idx++) {
+        const char* const rule = &input[line_mem_refs[line_idx].offset];
+
+        const char* rule_content = strchr(rule, ':');
+        if(!rule_content) {
+            continue;
+        }
+        char temp[128] = {0};
+        memcpy(temp, rule, rule_content - rule);
+        const size_t node_idx = atoi(temp);
+        largest_node_idx = node_idx > largest_node_idx ? node_idx : largest_node_idx;
+    }
+    assert(largest_node_idx >= (n_lines - 1));
+
+    const size_t n_nodes = (largest_node_idx + 1);
     node_t* nodes = (node_t*)malloc(n_nodes * sizeof(node_t));
     memset(nodes, 0, n_nodes * sizeof(node_t));
 
@@ -93,6 +120,7 @@ static bool process_rules(const char* const input, size_t size, node_t** output_
         const size_t node_idx = atoi(temp);
         rule_content += 2;
 
+        assert(node_idx < n_nodes);
         node_t* node = &nodes[node_idx];
         node->children.data = NULL;
         node->children.len = 0;
@@ -166,6 +194,7 @@ static size_t process_test_block(const char* const input, size_t size, node_t* n
 
         size_t pos = 0;
         if(recursive_solve(nodes, temp, test_string_len, &pos, 0) && pos == test_string_len) {
+            // printf("Match found: %s\n", temp);
             ++valid_test_string_count;
         }
     }
@@ -227,6 +256,36 @@ void day_19_part_1_problem()
     free(input);
 
     TEST_ASSERT_EQUAL_size_t(272, ans);
+}
+
+void day_19_part_2_example_1()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_19_part_2_example_1.txt", &input, &size);
+    TEST_ASSERT_TRUE(success);
+
+    const size_t ans = solve_part_1(input, size);
+
+    free(input);
+
+    TEST_ASSERT_EQUAL_size_t(3, ans);
+}
+
+void day_19_part_2_example_2()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_19_part_2_example_2.txt", &input, &size);
+    TEST_ASSERT_TRUE(success);
+
+    const size_t ans = solve_part_1(input, size);
+
+    free(input);
+
+    TEST_ASSERT_EQUAL_size_t(12, ans);
 }
 
 void day_19_part_2_problem()
