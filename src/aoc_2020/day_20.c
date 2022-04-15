@@ -29,6 +29,7 @@ typedef struct {
     char* bottom;
     char* left;
     char* right;
+    orientation_t orientation;
 } tile_t;
 
 typedef struct {
@@ -56,6 +57,7 @@ static tile_t tile_create(size_t id, const char* const top, const char* const bo
         .bottom = (char*)malloc(len + 1),
         .left = (char*)malloc(len + 1),
         .right = (char*)malloc(len + 1),
+        .orientation = ORIENTATION_STD,
     };
 
     tile.top[len] = 0;
@@ -73,7 +75,9 @@ static tile_t tile_create(size_t id, const char* const top, const char* const bo
 
 static tile_t tile_clone(tile_t tile)
 {
-    return tile_create(tile.id, tile.top, tile.bottom, tile.left, tile.right);
+    tile_t cloned_tile = tile_create(tile.id, tile.top, tile.bottom, tile.left, tile.right);
+    cloned_tile.orientation = tile.orientation;
+    return cloned_tile;
 }
 
 static tile_t tile_rotate(tile_t tile, orientation_t orientation)
@@ -87,6 +91,7 @@ static tile_t tile_rotate(tile_t tile, orientation_t orientation)
         rotated_tile.bottom = top;
         reverse_string(rotated_tile.left);
         reverse_string(rotated_tile.right);
+        rotated_tile.orientation = ORIENTATION_HORI;
         break;
     }
     case ORIENTATION_VERT: {
@@ -95,6 +100,7 @@ static tile_t tile_rotate(tile_t tile, orientation_t orientation)
         rotated_tile.right = left;
         reverse_string(rotated_tile.top);
         reverse_string(rotated_tile.bottom);
+        rotated_tile.orientation = ORIENTATION_VERT;
         break;
     }
     case ORIENTATION_VERT_HORI: {
@@ -108,6 +114,7 @@ static tile_t tile_rotate(tile_t tile, orientation_t orientation)
         reverse_string(rotated_tile.bottom);
         reverse_string(rotated_tile.left);
         reverse_string(rotated_tile.right);
+        rotated_tile.orientation = ORIENTATION_VERT_HORI;
         break;
     }
     case ORIENTATION_CLK_NINETY: {
@@ -123,6 +130,8 @@ static tile_t tile_rotate(tile_t tile, orientation_t orientation)
 
         reverse_string(rotated_tile.top);
         reverse_string(rotated_tile.bottom);
+
+        rotated_tile.orientation = ORIENTATION_CLK_NINETY;
         break;
     }
     case ORIENTATION_ACLK_NINETY: {
@@ -138,6 +147,8 @@ static tile_t tile_rotate(tile_t tile, orientation_t orientation)
 
         reverse_string(rotated_tile.left);
         reverse_string(rotated_tile.right);
+
+        rotated_tile.orientation = ORIENTATION_ACLK_NINETY;
         break;
     }
     case ORIENTATION_CLK_NINETY_VERT: {
@@ -151,6 +162,7 @@ static tile_t tile_rotate(tile_t tile, orientation_t orientation)
         rotated_tile.left = top;
         rotated_tile.right = bottom;
 
+        rotated_tile.orientation = ORIENTATION_CLK_NINETY_VERT;
         break;
     }
     case ORIENTATION_ACLK_NINETY_VERT: {
@@ -169,6 +181,7 @@ static tile_t tile_rotate(tile_t tile, orientation_t orientation)
         reverse_string(rotated_tile.left);
         reverse_string(rotated_tile.right);
 
+        rotated_tile.orientation = ORIENTATION_ACLK_NINETY_VERT;
         break;
     }
     case ORIENTATION_FINAL:
@@ -203,6 +216,7 @@ static grid_t grid_create(size_t grid_dim)
             grid.grid[i][j].bottom = NULL;
             grid.grid[i][j].left = NULL;
             grid.grid[i][j].right = NULL;
+            grid.grid[i][j].orientation = ORIENTATION_STD;
         }
     }
     return grid;
@@ -230,18 +244,6 @@ static grid_t grid_clone(grid_t src_grid)
         }
     }
     return dst_grid;
-}
-
-static tile_t* grid_find(const grid_t grid, size_t id)
-{
-    for(size_t i = 0; i < grid.grid_dim; ++i) {
-        for(size_t j = 0; j < grid.grid_dim; ++j) {
-            if(grid.grid[i][j].id == id) {
-                return &grid.grid[i][j];
-            }
-        }
-    }
-    return NULL;
 }
 
 static tile_t* process_input(const char* const input, size_t size, size_t* n_tiles)
@@ -319,8 +321,6 @@ static bool recursive_solve(const tile_t* tiles, size_t n_tiles, grid_t grid, si
 
     for(size_t tile_idx = 0; tile_idx < n_tiles; ++tile_idx) {
         const tile_t tile = tiles[tile_idx];
-        const size_t id = tile.id;
-        assert(grid_find(grid, id) == NULL);
 
         tile_t* tile_above = NULL;
         tile_t* tile_below = NULL;
@@ -401,7 +401,7 @@ static bool recursive_solve(const tile_t* tiles, size_t n_tiles, grid_t grid, si
     return false;
 }
 
-static size_t solve_part(const char* const input, size_t size)
+static size_t solve_part_1(const char* const input, size_t size)
 {
     size_t n_tiles = 0;
     tile_t* tiles = process_input(input, size, &n_tiles);
@@ -433,7 +433,7 @@ void day_20_part_1_example()
     const bool success = read_file_into_buf("../data/day_20_part_1_example.txt", &input, &size);
     TEST_ASSERT_TRUE(success);
 
-    const size_t ans = solve_part(input, size);
+    const size_t ans = solve_part_1(input, size);
 
     free(input);
 
@@ -448,10 +448,10 @@ void day_20_part_1_problem()
     const bool success = read_file_into_buf("../data/day_20_part_1_input.txt", &input, &size);
     TEST_ASSERT_TRUE(success);
 
-    const size_t ans = solve_part(input, size);
+    const size_t ans = solve_part_1(input, size);
 
     free(input);
 
-    TEST_ASSERT_EQUAL_size_t(20899048083289, ans);
+    TEST_ASSERT_EQUAL_size_t(13983397496713, ans);
 }
 
