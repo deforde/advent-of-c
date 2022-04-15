@@ -19,6 +19,7 @@
 #include "aoc_2020/day_17.h"
 #include "aoc_2020/day_18.h"
 #include "aoc_2020/day_19.h"
+#include "aoc_2020/day_20.h"
 
 void setUp(void)
 {
@@ -126,6 +127,9 @@ int main()
     RUN_TEST(day_19_part_2_example_1);
     RUN_TEST(day_19_part_2_example_2);
     RUN_TEST(day_19_part_2_problem);
+
+    RUN_TEST(day_20_part_1_example);
+    RUN_TEST(day_20_part_1_problem);
 
     return UNITY_END();
 }
