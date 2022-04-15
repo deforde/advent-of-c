@@ -236,16 +236,17 @@ static size_t process_test_block_2(const char* const input, size_t size, node_t*
                 free(local_nodes[0].children.data[0].data);
                 local_nodes[0].children.data[0].len = 3 + add_rule_8 + add_rule_11 * 2;
                 local_nodes[0].children.data[0].data = (size_t*)malloc(local_nodes[0].children.data[0].len * sizeof(size_t));
-                local_nodes[0].children.data[0].data[0] = 42;
-                local_nodes[0].children.data[0].data[add_rule_8 + 1] = 42;
-                local_nodes[0].children.data[0].data[local_nodes[0].children.data[0].len - 1] = 31;
+                size_t* rule_zero = local_nodes[0].children.data[0].data;
+                rule_zero[0] = 42;
+                rule_zero[add_rule_8 + 1] = 42;
+                rule_zero[local_nodes[0].children.data[0].len - 1] = 31;
 
                 for(size_t i = 0; i < add_rule_8; ++i) {
-                    local_nodes[0].children.data[0].data[1 + i] = 42;
+                    rule_zero[1 + i] = 42;
                 }
                 for(size_t i = 0; i < add_rule_11; ++i) {
-                    local_nodes[0].children.data[0].data[add_rule_8 + 2 + i] = 42;
-                    local_nodes[0].children.data[0].data[local_nodes[0].children.data[0].len - 2 - i] = 31;
+                    rule_zero[add_rule_8 + 2 + i] = 42;
+                    rule_zero[local_nodes[0].children.data[0].len - 2 - i] = 31;
                 }
 
                 size_t pos = 0;
