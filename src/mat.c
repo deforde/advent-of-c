@@ -34,7 +34,7 @@ static void mat_rotate_180(mat_t mat)
     mat_mirror(mat, MIRROR_HORI);
 }
 
-static void mat_mirror_vert(mat_t mat)
+static void mat_mirror_hori(mat_t mat)
 {
     mat_t orig = mat_clone(mat);
     for(size_t row = 0; row < mat.dim / 2; ++row) {
@@ -44,7 +44,7 @@ static void mat_mirror_vert(mat_t mat)
     mat_destroy(orig);
 }
 
-static void mat_mirror_hori(mat_t mat)
+static void mat_mirror_vert(mat_t mat)
 {
     mat_t orig = mat_clone(mat);
     for(size_t row = 0; row < mat.dim; ++row) {
@@ -62,6 +62,7 @@ mat_t mat_create(size_t dim)
         .dim = dim,
         .data = (mat_dtype_t*)malloc(dim * dim * sizeof(mat_dtype_t)),
     };
+    memset(mat.data, 0, dim * dim * sizeof(mat_dtype_t));
     return mat;
 }
 

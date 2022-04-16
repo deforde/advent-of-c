@@ -7,6 +7,7 @@
 #include <unity.h>
 
 #include "../utility.h"
+#include "../mat.h"
 
 #define DEFAULT_VEC_CAPACITY 100
 #define DEFAULT_VEC_GROWTH_FACTOR 2
@@ -36,6 +37,11 @@ typedef struct {
     tile_t** grid;
     size_t grid_dim;
 } grid_t;
+
+typedef struct {
+    size_t id;
+    mat_t mat;
+} cell_t;
 
 static void reverse_string(char* str)
 {
@@ -427,6 +433,60 @@ static bool get_solved_grid(const char* const input, size_t size, grid_t* output
     return solution_found;
 }
 
+static void get_cells(const char* const input, size_t size, cell_t** cells, size_t* n_cells)
+{
+    memory_reference_t* block_mem_refs = NULL;
+    size_t n_blocks = 0;
+    split_buf_by_sequence(input, size, "\n\n", &block_mem_refs, &n_blocks);
+
+    *n_cells = n_blocks;
+    *cells = (cell_t*)malloc(*n_cells * sizeof(cell_t));
+
+    for(size_t block_idx = 0; block_idx < n_blocks; ++block_idx) {
+        const char* const block = &input[block_mem_refs[block_idx].offset];
+        const size_t block_len = block_mem_refs[block_idx].size;
+
+        memory_reference_t* line_mem_refs = NULL;
+        size_t n_lines = 0;
+        split_buf_by_sequence(block, block_len, "\n", &line_mem_refs, &n_lines);
+
+        cell_t* cell = &(*cells)[block_idx];
+        cell->mat = mat_create(n_lines - 3);
+
+        {
+            const char* const line = &block[line_mem_refs[0].offset];
+            const size_t line_len = line_mem_refs[0].size;
+            char temp[128] = { 0 };
+            memcpy(temp, &line[5], line_len - 6);
+            cell->id = atoi(temp);
+        }
+
+        for(size_t line_idx = 2; line_idx < n_lines - 1; ++line_idx) {
+            const char* const line = &block[line_mem_refs[line_idx].offset];
+            const size_t line_len = line_mem_refs[line_idx].size;
+
+            for(size_t i = 1; i < line_len - 1; ++i) {
+                cell->mat.data[(line_idx - 2) * cell->mat.dim + i - 1] = line[i] == '#' ? 1 : 0;
+            }
+        }
+
+        free(line_mem_refs);
+    }
+
+    free(block_mem_refs);
+}
+
+static bool get_cell(const cell_t* cells, size_t n_cells, size_t id, cell_t* output_cell)
+{
+    for(size_t cell_idx = 0; cell_idx < n_cells; ++cell_idx) {
+        if(cells[cell_idx].id == id) {
+            *output_cell = cells[cell_idx];
+            return true;
+        }
+    }
+    return false;
+}
+
 static size_t solve_part_1(const char* const input, size_t size)
 {
     size_t ans = 0;
@@ -436,6 +496,75 @@ static size_t solve_part_1(const char* const input, size_t size)
               solved_grid.grid[solved_grid.grid_dim - 1][0].id *
               solved_grid.grid[0][solved_grid.grid_dim - 1].id *
               solved_grid.grid[solved_grid.grid_dim - 1][solved_grid.grid_dim - 1].id;
+        grid_destroy(solved_grid);
+    }
+    return ans;
+}
+
+static size_t solve_part_2(const char* const input, size_t size)
+{
+    size_t ans = 0;
+    grid_t solved_grid;
+    if(get_solved_grid(input, size, &solved_grid)) {
+        cell_t* cells = NULL;
+        size_t n_cells = 0;
+        get_cells(input, size, &cells, &n_cells);
+
+        mat_t lake = mat_create(cells[0].mat.dim * solved_grid.grid_dim);
+
+        for(size_t i = 0; i < solved_grid.grid_dim; ++i) {
+            for(size_t j = 0; j < solved_grid.grid_dim; ++j) {
+                const size_t id = solved_grid.grid[i][j].id;
+                cell_t this_cell;
+                const bool cell_found = get_cell(cells, n_cells, id, &this_cell);
+                assert(cell_found);
+
+                const orientation_t orientation = solved_grid.grid[i][j].orientation;
+                mat_t final_mat = mat_clone(this_cell.mat);
+                switch(orientation) {
+                    case ORIENTATION_HORI:
+                        mat_mirror(final_mat, MIRROR_HORI);
+                        break;
+                    case ORIENTATION_VERT:
+                        mat_mirror(final_mat, MIRROR_VERT);
+                        break;
+                    case ORIENTATION_VERT_HORI:
+                        mat_mirror(final_mat, MIRROR_VERT);
+                        mat_mirror(final_mat, MIRROR_HORI);
+                        break;
+                    case ORIENTATION_CLK_NINETY:
+                        mat_rotate(final_mat, ROTATION_CLK_90);
+                        break;
+                    case ORIENTATION_ACLK_NINETY:
+                        mat_rotate(final_mat, ROTATION_ACLK_90);
+                        break;
+                    case ORIENTATION_CLK_NINETY_VERT:
+                        mat_rotate(final_mat, ROTATION_CLK_90);
+                        mat_mirror(final_mat, MIRROR_VERT);
+                        break;
+                    case ORIENTATION_ACLK_NINETY_VERT:
+                        mat_rotate(final_mat, ROTATION_ACLK_90);
+                        mat_mirror(final_mat, MIRROR_VERT);
+                        break;
+                    case ORIENTATION_FINAL:
+                        assert(false);
+                    case ORIENTATION_STD:
+                    default:
+                        break;
+                }
+
+                const size_t lake_row_offset = i * final_mat.dim;
+                const size_t lake_col_offset = j * final_mat.dim;
+                for(size_t row = 0; row < final_mat.dim; ++row) {
+                    memcpy(
+                        &lake.data[(row + lake_row_offset) * lake.dim + lake_col_offset],
+                        &final_mat.data[row * final_mat.dim],
+                        final_mat.dim * sizeof(mat_dtype_t)
+                    );
+                }
+            }
+        }
+
         grid_destroy(solved_grid);
     }
     return ans;
@@ -469,5 +598,20 @@ void day_20_part_1_problem()
     free(input);
 
     TEST_ASSERT_EQUAL_size_t(13983397496713, ans);
+}
+
+void day_20_part_2_example()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_20_part_1_example.txt", &input, &size);
+    TEST_ASSERT_TRUE(success);
+
+    const size_t ans = solve_part_2(input, size);
+
+    free(input);
+
+    TEST_ASSERT_EQUAL_size_t(20899048083289, ans);
 }
 
