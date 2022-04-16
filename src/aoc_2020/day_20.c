@@ -501,6 +501,66 @@ static size_t solve_part_1(const char* const input, size_t size)
     return ans;
 }
 
+static mat_t create_lake(grid_t solved_grid, cell_t* cells, size_t n_cells)
+{
+    mat_t lake = mat_create(cells[0].mat.dim * solved_grid.grid_dim);
+
+    for(size_t i = 0; i < solved_grid.grid_dim; ++i) {
+        for(size_t j = 0; j < solved_grid.grid_dim; ++j) {
+            const size_t id = solved_grid.grid[i][j].id;
+            cell_t this_cell;
+            const bool cell_found = get_cell(cells, n_cells, id, &this_cell);
+            assert(cell_found);
+
+            const orientation_t orientation = solved_grid.grid[i][j].orientation;
+            mat_t final_mat = mat_clone(this_cell.mat);
+            switch(orientation) {
+                case ORIENTATION_HORI:
+                    mat_mirror(final_mat, MIRROR_HORI);
+                    break;
+                case ORIENTATION_VERT:
+                    mat_mirror(final_mat, MIRROR_VERT);
+                    break;
+                case ORIENTATION_VERT_HORI:
+                    mat_mirror(final_mat, MIRROR_VERT);
+                    mat_mirror(final_mat, MIRROR_HORI);
+                    break;
+                case ORIENTATION_CLK_NINETY:
+                    mat_rotate(final_mat, ROTATION_CLK_90);
+                    break;
+                case ORIENTATION_ACLK_NINETY:
+                    mat_rotate(final_mat, ROTATION_ACLK_90);
+                    break;
+                case ORIENTATION_CLK_NINETY_VERT:
+                    mat_rotate(final_mat, ROTATION_CLK_90);
+                    mat_mirror(final_mat, MIRROR_VERT);
+                    break;
+                case ORIENTATION_ACLK_NINETY_VERT:
+                    mat_rotate(final_mat, ROTATION_ACLK_90);
+                    mat_mirror(final_mat, MIRROR_VERT);
+                    break;
+                case ORIENTATION_FINAL:
+                    assert(false);
+                case ORIENTATION_STD:
+                default:
+                    break;
+            }
+
+            const size_t lake_row_offset = i * final_mat.dim;
+            const size_t lake_col_offset = j * final_mat.dim;
+            for(size_t row = 0; row < final_mat.dim; ++row) {
+                memcpy(
+                    &lake.data[(row + lake_row_offset) * lake.dim + lake_col_offset],
+                    &final_mat.data[row * final_mat.dim],
+                    final_mat.dim * sizeof(mat_dtype_t)
+                );
+            }
+        }
+    }
+
+    return lake;
+}
+
 static size_t solve_part_2(const char* const input, size_t size)
 {
     size_t ans = 0;
@@ -510,57 +570,32 @@ static size_t solve_part_2(const char* const input, size_t size)
         size_t n_cells = 0;
         get_cells(input, size, &cells, &n_cells);
 
-        mat_t lake = mat_create(cells[0].mat.dim * solved_grid.grid_dim);
+        mat_t lake = create_lake(solved_grid, cells, n_cells);
 
-        for(size_t i = 0; i < solved_grid.grid_dim; ++i) {
-            for(size_t j = 0; j < solved_grid.grid_dim; ++j) {
-                const size_t id = solved_grid.grid[i][j].id;
-                cell_t this_cell;
-                const bool cell_found = get_cell(cells, n_cells, id, &this_cell);
-                assert(cell_found);
+        size_t monster_bit_len = 20;
+        uint32_t monster[3] = {
+            2,
+            549255,
+            299592,
+        };
 
-                const orientation_t orientation = solved_grid.grid[i][j].orientation;
-                mat_t final_mat = mat_clone(this_cell.mat);
-                switch(orientation) {
-                    case ORIENTATION_HORI:
-                        mat_mirror(final_mat, MIRROR_HORI);
+        size_t match_count = 0;
+        for(size_t row = 0; row < lake.dim - 2; ++row) {
+            for(size_t offset = 0; offset < lake.dim - monster_bit_len + 1; ++offset) {
+                bool match_found = true;
+                for(size_t monst_num_idx = 0; monst_num_idx < 3; ++monst_num_idx) {
+                    uint32_t num = 0;
+                    for(size_t col = lake.dim - monster_bit_len - offset; col < lake.dim; ++col) {
+                        const uint8_t val = lake.data[row * lake.dim + col];
+                        num = (num << 1) | val;
+                    }
+                    if(monster[monst_num_idx] != (monster[monst_num_idx] & num)) {
+                        match_found = false;
                         break;
-                    case ORIENTATION_VERT:
-                        mat_mirror(final_mat, MIRROR_VERT);
-                        break;
-                    case ORIENTATION_VERT_HORI:
-                        mat_mirror(final_mat, MIRROR_VERT);
-                        mat_mirror(final_mat, MIRROR_HORI);
-                        break;
-                    case ORIENTATION_CLK_NINETY:
-                        mat_rotate(final_mat, ROTATION_CLK_90);
-                        break;
-                    case ORIENTATION_ACLK_NINETY:
-                        mat_rotate(final_mat, ROTATION_ACLK_90);
-                        break;
-                    case ORIENTATION_CLK_NINETY_VERT:
-                        mat_rotate(final_mat, ROTATION_CLK_90);
-                        mat_mirror(final_mat, MIRROR_VERT);
-                        break;
-                    case ORIENTATION_ACLK_NINETY_VERT:
-                        mat_rotate(final_mat, ROTATION_ACLK_90);
-                        mat_mirror(final_mat, MIRROR_VERT);
-                        break;
-                    case ORIENTATION_FINAL:
-                        assert(false);
-                    case ORIENTATION_STD:
-                    default:
-                        break;
+                    }
                 }
-
-                const size_t lake_row_offset = i * final_mat.dim;
-                const size_t lake_col_offset = j * final_mat.dim;
-                for(size_t row = 0; row < final_mat.dim; ++row) {
-                    memcpy(
-                        &lake.data[(row + lake_row_offset) * lake.dim + lake_col_offset],
-                        &final_mat.data[row * final_mat.dim],
-                        final_mat.dim * sizeof(mat_dtype_t)
-                    );
+                if(match_found) {
+                    match_count++;
                 }
             }
         }
