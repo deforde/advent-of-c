@@ -2,11 +2,14 @@
 #define MAT_H
 
 #include <stdint.h>
-
-#define MAT_DIM 8
+#include <stddef.h>
 
 typedef uint8_t mat_dtype_t;
-typedef mat_dtype_t mat_t[MAT_DIM][MAT_DIM];
+
+typedef struct {
+    size_t dim;
+    mat_dtype_t* data;
+} mat_t;
 
 typedef enum {
     ROTATION_CLK_90,
@@ -19,7 +22,9 @@ typedef enum {
     MIRROR_HORI,
 } mirror_t;
 
-void mat_clone(mat_t src, mat_t dst);
+mat_t mat_create(size_t dim);
+void mat_destroy(mat_t mat);
+mat_t mat_clone(mat_t src);
 void mat_rotate(mat_t mat, rotation_t rot);
 void mat_mirror(mat_t mat, mirror_t mirror);
 

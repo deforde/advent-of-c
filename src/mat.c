@@ -4,27 +4,28 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
+#include <stdlib.h>
 
 static void mat_rotate_clk_90(mat_t mat)
 {
-    mat_t orig;
-    mat_clone(mat, orig);
-    for(size_t row = 0; row < MAT_DIM; ++row) {
-        for(size_t col = 0; col < MAT_DIM; ++col) {
-            mat[col][MAT_DIM - 1 - row] = orig[row][col];
+    mat_t orig = mat_clone(mat);
+    for(size_t row = 0; row < mat.dim; ++row) {
+        for(size_t col = 0; col < mat.dim; ++col) {
+            mat.data[col * mat.dim + mat.dim - 1 - row] = orig.data[row * mat.dim + col];
         }
     }
+    mat_destroy(orig);
 }
 
 static void mat_rotate_aclk_90(mat_t mat)
 {
-    mat_t orig;
-    mat_clone(mat, orig);
-    for(size_t row = 0; row < MAT_DIM; ++row) {
-        for(size_t col = 0; col < MAT_DIM; ++col) {
-            mat[MAT_DIM - 1 - col][row] = orig[row][col];
+    mat_t orig = mat_clone(mat);
+    for(size_t row = 0; row < mat.dim; ++row) {
+        for(size_t col = 0; col < mat.dim; ++col) {
+            mat.data[(mat.dim - 1 - col) * mat.dim + row] = orig.data[row * mat.dim + col];
         }
     }
+    mat_destroy(orig);
 }
 
 static void mat_rotate_180(mat_t mat)
@@ -35,29 +36,45 @@ static void mat_rotate_180(mat_t mat)
 
 static void mat_mirror_vert(mat_t mat)
 {
-    mat_t orig;
-    mat_clone(mat, orig);
-    for(size_t row = 0; row < MAT_DIM / 2; ++row) {
-        memcpy(mat[row], orig[MAT_DIM - 1 - row], MAT_DIM * sizeof(mat_dtype_t));
-        memcpy(mat[MAT_DIM - 1 - row], orig[row], MAT_DIM * sizeof(mat_dtype_t));
+    mat_t orig = mat_clone(mat);
+    for(size_t row = 0; row < mat.dim / 2; ++row) {
+        memcpy(&mat.data[row * mat.dim], &orig.data[(mat.dim - 1 - row) * mat.dim], mat.dim * sizeof(mat_dtype_t));
+        memcpy(&mat.data[(mat.dim - 1 - row) * mat.dim], &orig.data[row * mat.dim], mat.dim * sizeof(mat_dtype_t));
     }
+    mat_destroy(orig);
 }
 
 static void mat_mirror_hori(mat_t mat)
 {
-    mat_t orig;
-    mat_clone(mat, orig);
-    for(size_t row = 0; row < MAT_DIM; ++row) {
-        for(size_t col = 0; col < MAT_DIM / 2; ++col) {
-            mat[row][col] = orig[row][MAT_DIM - 1 - col];
-            mat[row][MAT_DIM - 1 - col] = orig[row][col];
+    mat_t orig = mat_clone(mat);
+    for(size_t row = 0; row < mat.dim; ++row) {
+        for(size_t col = 0; col < mat.dim / 2; ++col) {
+            mat.data[row * mat.dim + col] = orig.data[row * mat.dim + mat.dim - 1 - col];
+            mat.data[row * mat.dim + mat.dim - 1 - col] = orig.data[row * mat.dim + col];
         }
     }
+    mat_destroy(orig);
 }
 
-void mat_clone(mat_t src, mat_t dst)
+mat_t mat_create(size_t dim)
 {
-    memcpy(dst, src, MAT_DIM * MAT_DIM * sizeof(mat_dtype_t));
+    mat_t mat = {
+        .dim = dim,
+        .data = (mat_dtype_t*)malloc(dim * dim * sizeof(mat_dtype_t)),
+    };
+    return mat;
+}
+
+void mat_destroy(mat_t mat)
+{
+    free(mat.data);
+}
+
+mat_t mat_clone(mat_t src)
+{
+    mat_t dst = mat_create(src.dim);
+    memcpy(dst.data, src.data, src.dim * src.dim * sizeof(mat_dtype_t));
+    return dst;
 }
 
 void mat_rotate(mat_t mat, rotation_t rot)
