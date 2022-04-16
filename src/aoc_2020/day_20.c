@@ -501,6 +501,41 @@ static size_t solve_part_1(const char* const input, size_t size)
     return ans;
 }
 
+static void mat_transform(mat_t mat, orientation_t orientation)
+{
+    switch(orientation) {
+        case ORIENTATION_HORI:
+            mat_mirror(mat, MIRROR_HORI);
+            break;
+        case ORIENTATION_VERT:
+            mat_mirror(mat, MIRROR_VERT);
+            break;
+        case ORIENTATION_VERT_HORI:
+            mat_mirror(mat, MIRROR_VERT);
+            mat_mirror(mat, MIRROR_HORI);
+            break;
+        case ORIENTATION_CLK_NINETY:
+            mat_rotate(mat, ROTATION_CLK_90);
+            break;
+        case ORIENTATION_ACLK_NINETY:
+            mat_rotate(mat, ROTATION_ACLK_90);
+            break;
+        case ORIENTATION_CLK_NINETY_VERT:
+            mat_rotate(mat, ROTATION_CLK_90);
+            mat_mirror(mat, MIRROR_VERT);
+            break;
+        case ORIENTATION_ACLK_NINETY_VERT:
+            mat_rotate(mat, ROTATION_ACLK_90);
+            mat_mirror(mat, MIRROR_VERT);
+            break;
+        case ORIENTATION_FINAL:
+            assert(false);
+        case ORIENTATION_STD:
+        default:
+            break;
+    }
+}
+
 static mat_t create_lake(grid_t solved_grid, cell_t* cells, size_t n_cells)
 {
     mat_t lake = mat_create(cells[0].mat.dim * solved_grid.grid_dim);
@@ -514,37 +549,7 @@ static mat_t create_lake(grid_t solved_grid, cell_t* cells, size_t n_cells)
 
             const orientation_t orientation = solved_grid.grid[i][j].orientation;
             mat_t final_mat = mat_clone(this_cell.mat);
-            switch(orientation) {
-                case ORIENTATION_HORI:
-                    mat_mirror(final_mat, MIRROR_HORI);
-                    break;
-                case ORIENTATION_VERT:
-                    mat_mirror(final_mat, MIRROR_VERT);
-                    break;
-                case ORIENTATION_VERT_HORI:
-                    mat_mirror(final_mat, MIRROR_VERT);
-                    mat_mirror(final_mat, MIRROR_HORI);
-                    break;
-                case ORIENTATION_CLK_NINETY:
-                    mat_rotate(final_mat, ROTATION_CLK_90);
-                    break;
-                case ORIENTATION_ACLK_NINETY:
-                    mat_rotate(final_mat, ROTATION_ACLK_90);
-                    break;
-                case ORIENTATION_CLK_NINETY_VERT:
-                    mat_rotate(final_mat, ROTATION_CLK_90);
-                    mat_mirror(final_mat, MIRROR_VERT);
-                    break;
-                case ORIENTATION_ACLK_NINETY_VERT:
-                    mat_rotate(final_mat, ROTATION_ACLK_90);
-                    mat_mirror(final_mat, MIRROR_VERT);
-                    break;
-                case ORIENTATION_FINAL:
-                    assert(false);
-                case ORIENTATION_STD:
-                default:
-                    break;
-            }
+            mat_transform(final_mat, orientation);
 
             const size_t lake_row_offset = i * final_mat.dim;
             const size_t lake_col_offset = j * final_mat.dim;
@@ -555,6 +560,7 @@ static mat_t create_lake(grid_t solved_grid, cell_t* cells, size_t n_cells)
                     final_mat.dim * sizeof(mat_dtype_t)
                 );
             }
+            mat_destroy(final_mat);
         }
     }
 
@@ -563,7 +569,8 @@ static mat_t create_lake(grid_t solved_grid, cell_t* cells, size_t n_cells)
 
 static size_t solve_part_2(const char* const input, size_t size)
 {
-    size_t ans = 0;
+    size_t non_monster_high_bits = 0;
+
     grid_t solved_grid;
     if(get_solved_grid(input, size, &solved_grid)) {
         cell_t* cells = NULL;
@@ -578,31 +585,52 @@ static size_t solve_part_2(const char* const input, size_t size)
             549255,
             299592,
         };
+        const size_t n_monster_high_bits = 15;
+        non_monster_high_bits = 0;
 
-        size_t match_count = 0;
-        for(size_t row = 0; row < lake.dim - 2; ++row) {
-            for(size_t offset = 0; offset < lake.dim - monster_bit_len + 1; ++offset) {
-                bool match_found = true;
-                for(size_t monst_num_idx = 0; monst_num_idx < 3; ++monst_num_idx) {
-                    uint32_t num = 0;
-                    for(size_t col = lake.dim - monster_bit_len - offset; col < lake.dim; ++col) {
-                        const uint8_t val = lake.data[row * lake.dim + col];
-                        num = (num << 1) | val;
+        for(size_t orientation = 0; orientation < ORIENTATION_FINAL; ++orientation) {
+            size_t match_count = 0;
+            mat_t trans_lake = mat_clone(lake);
+            mat_transform(trans_lake, orientation);
+            for(size_t row = 0; row < trans_lake.dim - 2; ++row) {
+                for(size_t offset = 0; offset < trans_lake.dim - monster_bit_len + 1; ++offset) {
+                    bool match_found = true;
+                    for(size_t monst_num_idx = 0; monst_num_idx < 3; ++monst_num_idx) {
+                        uint32_t num = 0;
+                        for(size_t col = trans_lake.dim - monster_bit_len - offset; col < trans_lake.dim - offset; ++col) {
+                            const uint8_t val = trans_lake.data[(row + monst_num_idx) * trans_lake.dim + col];
+                            num = (num << 1) | val;
+                        }
+                        if(monster[monst_num_idx] != (monster[monst_num_idx] & num)) {
+                            match_found = false;
+                            break;
+                        }
                     }
-                    if(monster[monst_num_idx] != (monster[monst_num_idx] & num)) {
-                        match_found = false;
-                        break;
+                    if(match_found) {
+                        match_count++;
                     }
-                }
-                if(match_found) {
-                    match_count++;
                 }
             }
+            if(match_count) {
+                for(size_t i = 0; i < trans_lake.dim * trans_lake.dim; ++i) {
+                    non_monster_high_bits += trans_lake.data[i];
+                }
+                non_monster_high_bits -= match_count * n_monster_high_bits;
+                mat_destroy(trans_lake);
+                break;
+            }
+            mat_destroy(trans_lake);
         }
 
+        mat_destroy(lake);
+        for(size_t cell_idx = 0; cell_idx < n_cells; ++cell_idx) {
+            mat_destroy(cells[cell_idx].mat);
+        }
+        free(cells);
         grid_destroy(solved_grid);
     }
-    return ans;
+
+    return non_monster_high_bits;
 }
 
 void day_20_part_1_example()
@@ -647,6 +675,21 @@ void day_20_part_2_example()
 
     free(input);
 
-    TEST_ASSERT_EQUAL_size_t(20899048083289, ans);
+    TEST_ASSERT_EQUAL_size_t(273, ans);
+}
+
+void day_20_part_2_problem()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_20_part_1_input.txt", &input, &size);
+    TEST_ASSERT_TRUE(success);
+
+    const size_t ans = solve_part_2(input, size);
+
+    free(input);
+
+    TEST_ASSERT_EQUAL_size_t(2424, ans);
 }
 
