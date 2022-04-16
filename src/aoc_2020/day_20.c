@@ -401,7 +401,7 @@ static bool recursive_solve(const tile_t* tiles, size_t n_tiles, grid_t grid, si
     return false;
 }
 
-static size_t solve_part_1(const char* const input, size_t size)
+static bool get_solved_grid(const char* const input, size_t size, grid_t* output)
 {
     size_t n_tiles = 0;
     tile_t* tiles = process_input(input, size, &n_tiles);
@@ -409,19 +409,35 @@ static size_t solve_part_1(const char* const input, size_t size)
     const size_t grid_dim = (size_t)sqrtf(n_tiles);
     grid_t grid = grid_create(grid_dim);
 
-    size_t ans = 0;
     grid_t solved_grid;
-    if(recursive_solve(tiles, n_tiles, grid, 0, 0, &solved_grid)) {
-        ans = solved_grid.grid[0][0].id * solved_grid.grid[grid_dim - 1][0].id * solved_grid.grid[0][grid_dim - 1].id * solved_grid.grid[grid_dim - 1][grid_dim - 1].id;
+    const bool solution_found = recursive_solve(tiles, n_tiles, grid, 0, 0, &solved_grid);
+
+    if(!solution_found) {
         grid_destroy(solved_grid);
     }
-
+    else {
+        *output = solved_grid;
+    }
     grid_destroy(grid);
     for(size_t tile_idx = 0; tile_idx < n_tiles; ++tile_idx) {
         tile_destroy(tiles[tile_idx]);
     }
     free(tiles);
 
+    return solution_found;
+}
+
+static size_t solve_part_1(const char* const input, size_t size)
+{
+    size_t ans = 0;
+    grid_t solved_grid;
+    if(get_solved_grid(input, size, &solved_grid)) {
+        ans = solved_grid.grid[0][0].id *
+              solved_grid.grid[solved_grid.grid_dim - 1][0].id *
+              solved_grid.grid[0][solved_grid.grid_dim - 1].id *
+              solved_grid.grid[solved_grid.grid_dim - 1][solved_grid.grid_dim - 1].id;
+        grid_destroy(solved_grid);
+    }
     return ans;
 }
 
