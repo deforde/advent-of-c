@@ -3,6 +3,7 @@ project(advent-of-c C)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(-Wall -Wextra -pedantic -Werror -Werror=vla)
+# add_compile_options(-fsanitize=address)
 
 add_executable(advent-of-c "")
 
@@ -12,4 +13,6 @@ include_directories(unity PUBLIC $ENV{TTS_UNITY_DIR}/src)
 add_subdirectory(src)
 add_subdirectory(src/aoc_2020)
 
+# target_link_libraries(advent-of-c unity m -fsanitize=address)
 target_link_libraries(advent-of-c unity m)
+
