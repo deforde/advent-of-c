@@ -1,5 +1,6 @@
 #include "day_21.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +24,56 @@ typedef struct {
     ingredients_t ingredients;
 } allergen_t;
 
+static bool process_line(const char* const line, size_t line_len, char allergens[MAX_NUM_ALLERGENS][MAX_ALLERGEN_LEN], size_t* n_allergens, char ingredients[MAX_NUM_INGREDIENTS][MAX_INGREDIENT_LEN], size_t* n_ingredients)
+{
+    *n_allergens = 0;
+    *n_ingredients = 0;
+
+    memory_reference_t* section_mem_refs = NULL;
+    size_t n_sections = 0;
+    split_buf_by_sequence(line, line_len, " (contains ", &section_mem_refs, &n_sections);
+
+    if(n_sections) {
+        if(n_sections > 1) {
+            const char* const allergen_section = &line[section_mem_refs[1].offset];
+            const size_t allergen_section_len = section_mem_refs[1].size - 1;
+
+            memory_reference_t* allergen_mem_refs = NULL;
+            size_t n_allergen_mem_refs = 0;
+            split_buf_by_sequence(allergen_section, allergen_section_len, ", ", &allergen_mem_refs, &n_allergen_mem_refs);
+
+            for(size_t allergen_idx = 0; allergen_idx < n_allergen_mem_refs; ++allergen_idx) {
+                const char* const line_allergen = &allergen_section[allergen_mem_refs[allergen_idx].offset];
+                const size_t line_allergen_len = allergen_mem_refs[allergen_idx].size;
+                memcpy(&allergens[(*n_allergens)++], line_allergen, line_allergen_len);
+                printf("Allergen: %s\n", allergens[*n_allergens - 1]);
+            }
+
+            free(allergen_mem_refs);
+        }
+
+        const char* const ingredient_section = &line[section_mem_refs[0].offset];
+        const size_t ingredient_section_len = section_mem_refs[0].size;
+
+        memory_reference_t* ingredient_mem_refs = NULL;
+        size_t n_ingredient_mem_refs = 0;
+        split_buf_by_sequence(ingredient_section, ingredient_section_len, " ", &ingredient_mem_refs, &n_ingredient_mem_refs);
+
+        for(size_t ingredient_idx = 0; ingredient_idx < n_ingredient_mem_refs; ++ingredient_idx) {
+            const char* const line_ingredient = &ingredient_section[ingredient_mem_refs[ingredient_idx].offset];
+            const size_t line_ingredient_len = ingredient_mem_refs[ingredient_idx].size;
+            memcpy(&ingredients[(*n_ingredients)++], line_ingredient, line_ingredient_len);
+            printf("Ingredient: %s\n", ingredients[*n_ingredients - 1]);
+        }
+
+        free(ingredient_mem_refs);
+    }
+
+    free(section_mem_refs);
+
+    return true;
+}
+
 static size_t solve_part_1(const char* const input, size_t size)
 {
     size_t ans = 0;
@@ -37,54 +88,12 @@ static size_t solve_part_1(const char* const input, size_t size)
         printf("Line #%lu\n", line_idx);
         const char* const line = &input[line_mem_refs[line_idx].offset];
         const size_t line_len = line_mem_refs[line_idx].size;
-
-        memory_reference_t* section_mem_refs = NULL;
-        size_t n_sections = 0;
-        split_buf_by_sequence(line, line_len, " (contains ", &section_mem_refs, &n_sections);
-
         char line_allergens[MAX_NUM_ALLERGENS][MAX_ALLERGEN_LEN] = {0};
         size_t n_line_allergens = 0;
+        char line_ingredients[MAX_NUM_INGREDIENTS][MAX_INGREDIENT_LEN] = {0};
+        size_t n_line_ingredients = 0;
 
-        if(n_sections) {
-            if(n_sections > 1) {
-                const char* const allergen_section = &line[section_mem_refs[1].offset];
-                const size_t allergen_section_len = section_mem_refs[1].size - 1;
-
-                memory_reference_t* allergen_mem_refs = NULL;
-                size_t n_allergen_mem_refs = 0;
-                split_buf_by_sequence(allergen_section, allergen_section_len, ", ", &allergen_mem_refs, &n_allergen_mem_refs);
-
-                for(size_t allergen_idx = 0; allergen_idx < n_allergen_mem_refs; ++allergen_idx) {
-                    const char* const line_allergen = &allergen_section[allergen_mem_refs[allergen_idx].offset];
-                    const size_t line_allergen_len = allergen_mem_refs[allergen_idx].size;
-                    memcpy(&line_allergens[n_line_allergens++], line_allergen, line_allergen_len);
-                    printf("Allergen: %s\n", line_allergens[n_line_allergens - 1]);
-                }
-
-                free(allergen_mem_refs);
-            }
-
-            const char* const ingredient_section = &line[section_mem_refs[0].offset];
-            const size_t ingredient_section_len = section_mem_refs[0].size;
-
-            memory_reference_t* ingredient_mem_refs = NULL;
-            size_t n_ingredients = 0;
-            split_buf_by_sequence(ingredient_section, ingredient_section_len, " ", &ingredient_mem_refs, &n_ingredients);
-
-            char line_ingredients[MAX_NUM_INGREDIENTS][MAX_INGREDIENT_LEN] = {0};
-            size_t n_line_ingredients = 0;
-
-            for(size_t ingredient_idx = 0; ingredient_idx < n_ingredients; ++ingredient_idx) {
-                const char* const line_ingredient = &ingredient_section[ingredient_mem_refs[ingredient_idx].offset];
-                const size_t line_ingredient_len = ingredient_mem_refs[ingredient_idx].size;
-                memcpy(&line_ingredients[n_line_ingredients++], line_ingredient, line_ingredient_len);
-                printf("Ingredient: %s\n", line_ingredients[n_line_ingredients - 1]);
-            }
-
-            free(ingredient_mem_refs);
-        }
-
-        free(section_mem_refs);
+        process_line(line, line_len, line_allergens, &n_line_allergens, line_ingredients, &n_line_ingredients);
     }
 
     free(line_mem_refs);
