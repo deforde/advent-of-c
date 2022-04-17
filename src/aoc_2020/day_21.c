@@ -3,16 +3,17 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unity.h>
 
 #include "../utility.h"
 
-#define MAX_NUM_INGREDIENTS 32768
-#define MAX_NUM_ALLERGENS 128
-#define MAX_INGREDIENT_LEN 128
-#define MAX_ALLERGEN_LEN 128
+#define MAX_NUM_INGREDIENTS 512
+#define MAX_NUM_ALLERGENS 10
+#define MAX_INGREDIENT_LEN 20
+#define MAX_ALLERGEN_LEN 20
 
 typedef struct {
     char list[MAX_NUM_INGREDIENTS][MAX_INGREDIENT_LEN];
@@ -30,7 +31,6 @@ typedef struct {
     ingredients_t ingredients;
 } allergen_t;
 
-size_t ans = 0;
 allergen_t allergens[MAX_NUM_ALLERGENS] = {0};
 size_t n_allergens = 0;
 ingredient_counter_t all = {0};
@@ -90,7 +90,7 @@ static void ingredients_make_unique(ingredients_t* ingredients)
         char* str = ingredients->list[i];
         for(size_t j = i + 1; j < ingredients->n_ingredients; ++j) {
             char* other_str = ingredients->list[j];
-            if(strncmp(str, other_str, strlen(str)) == 0) {
+            if(strlen(str) == strlen(other_str) && strncmp(str, other_str, strlen(str)) == 0) {
                 memset(other_str, 0, strlen(str));
                 memcpy(other_str, ingredients->list[ingredients->n_ingredients - 1], strlen(ingredients->list[ingredients->n_ingredients - 1]));
                 memset(ingredients->list[ingredients->n_ingredients - 1], 0, strlen(ingredients->list[ingredients->n_ingredients - 1]));
@@ -104,7 +104,7 @@ static void ingredients_make_unique(ingredients_t* ingredients)
 static allergen_t* get_allergen(allergen_t allergens[MAX_NUM_ALLERGENS], size_t* n_allergens, char* allergen_name)
 {
     for(size_t allergen_idx = 0; allergen_idx < *n_allergens; ++allergen_idx) {
-        if(strncmp(allergens[allergen_idx].allergen_name, allergen_name, MAX_ALLERGEN_LEN) == 0) {
+        if(strlen(allergens[allergen_idx].allergen_name) == strlen(allergen_name) && strncmp(allergens[allergen_idx].allergen_name, allergen_name, MAX_ALLERGEN_LEN) == 0) {
             return &allergens[allergen_idx];
         }
     }
@@ -120,7 +120,7 @@ static void filter_ingredients(ingredients_t* ingredients, char list[MAX_NUM_ING
         bool match_found = false;
         for(size_t j = 0; j < list_len; ++j) {
             char* list_ingredient = list[j];
-            if(strncmp(ingredient, list_ingredient, strlen(ingredient)) == 0) {
+            if(strlen(ingredient) == strlen(list_ingredient) && strncmp(ingredient, list_ingredient, strlen(ingredient)) == 0) {
                 match_found = true;
                 break;
             }
@@ -144,7 +144,7 @@ static void rev_filter_ingredients(ingredients_t* ingredients, char list[MAX_NUM
         bool match_found = false;
         for(size_t j = 0; j < list_len; ++j) {
             char* list_ingredient = list[j];
-            if(strncmp(ingredient, list_ingredient, strlen(ingredient)) == 0) {
+            if(strlen(ingredient) == strlen(list_ingredient) && strncmp(ingredient, list_ingredient, strlen(ingredient)) == 0) {
                 match_found = true;
                 break;
             }
@@ -178,7 +178,7 @@ static void eliminate_ambiguities(allergen_t allergens[MAX_NUM_ALLERGENS], size_
                     ingredients_t* other_ingredients = &other_allergen->ingredients;
                     for(size_t k = 0; k < other_ingredients->n_ingredients;) {
                         char* other_ingredient_name = other_allergen->ingredients.list[k];
-                        const bool match = strncmp(ingredient_name, other_ingredient_name, strlen(ingredient_name)) == 0;
+                        const bool match = strlen(ingredient_name) == strlen(other_ingredient_name) && strncmp(ingredient_name, other_ingredient_name, strlen(ingredient_name)) == 0;
                         if(match) {
                             memset(other_ingredient_name, 0, strlen(other_ingredient_name));
                             memcpy(other_ingredient_name, other_ingredients->list[other_ingredients->n_ingredients - 1], strlen(other_ingredients->list[other_ingredients->n_ingredients - 1]));
@@ -212,7 +212,8 @@ static void add_ingredients_to_allergen(allergen_t* allergen, char ingredients[M
 
 static size_t solve_part_1(const char* const input, size_t size)
 {
-    ans = 0;
+    size_t ans = 0;
+
     memset(allergens, 0, MAX_NUM_ALLERGENS * sizeof(allergen_t));
     n_allergens = 0;
     memset(&all, 0, sizeof(ingredient_counter_t));
@@ -240,18 +241,19 @@ static size_t solve_part_1(const char* const input, size_t size)
 
         for(size_t i = 0; i < n_line_ingredients; ++i) {
             char* line_ingredient_name = line_ingredients[i];
+            assert(non_allergenic.n_ingredients <= MAX_NUM_INGREDIENTS);
             memcpy(non_allergenic.list[non_allergenic.n_ingredients++], line_ingredient_name, strlen(line_ingredient_name));
 
             bool extant_ingred_found = false;
             for(size_t j = 0; j < all.n_ingredients; ++j) {
-                if(strncmp(all.list[j], line_ingredient_name, strlen(line_ingredient_name)) == 0) {
+                if(strlen(all.list[j]) == strlen(line_ingredient_name) && strncmp(all.list[j], line_ingredient_name, strlen(line_ingredient_name)) == 0) {
                     extant_ingred_found = true;
                     all.count[j]++;
                     break;
                 }
             }
             if(!extant_ingred_found) {
-                all.count[all.n_ingredients]++;
+                all.count[all.n_ingredients] = 1;
                 memcpy(all.list[all.n_ingredients++], line_ingredient_name, strlen(line_ingredient_name));
             }
         }
@@ -261,6 +263,7 @@ static size_t solve_part_1(const char* const input, size_t size)
     eliminate_ambiguities(allergens, n_allergens);
     for(size_t i = 0; i < n_allergens; ++i) {
         assert(allergens[i].ingredients.n_ingredients == 1);
+        // printf("%s,%s,\n", allergens[i].allergen_name, allergens[i].ingredients.list[0]);
         rev_filter_ingredients(&non_allergenic, allergens[i].ingredients.list, allergens[i].ingredients.n_ingredients);
     }
 
@@ -268,8 +271,9 @@ static size_t solve_part_1(const char* const input, size_t size)
         char* non_allergenic_ingredient_name = non_allergenic.list[i];
         for(size_t j = 0; j < all.n_ingredients; ++j) {
             char* ingredient_name = all.list[j];
-            if(strncmp(ingredient_name, non_allergenic_ingredient_name, strlen(non_allergenic_ingredient_name)) == 0) {
+            if(strlen(ingredient_name) == strlen(non_allergenic_ingredient_name) && strncmp(ingredient_name, non_allergenic_ingredient_name, strlen(non_allergenic_ingredient_name)) == 0) {
                 ans += all.count[j];
+                break;
             }
         }
     }
