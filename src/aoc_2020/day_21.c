@@ -9,7 +9,7 @@
 
 #include "../utility.h"
 
-#define MAX_NUM_INGREDIENTS 128
+#define MAX_NUM_INGREDIENTS 32768
 #define MAX_NUM_ALLERGENS 128
 #define MAX_INGREDIENT_LEN 128
 #define MAX_ALLERGEN_LEN 128
@@ -20,9 +20,21 @@ typedef struct {
 } ingredients_t;
 
 typedef struct {
+    char list[MAX_NUM_INGREDIENTS][MAX_INGREDIENT_LEN];
+    size_t n_ingredients;
+    size_t count[MAX_NUM_INGREDIENTS];
+} ingredient_counter_t;
+
+typedef struct {
     char allergen_name[MAX_ALLERGEN_LEN];
     ingredients_t ingredients;
 } allergen_t;
+
+size_t ans = 0;
+allergen_t allergens[MAX_NUM_ALLERGENS] = {0};
+size_t n_allergens = 0;
+ingredient_counter_t all = {0};
+ingredients_t non_allergenic = {0};
 
 static bool extract_line_data(const char* const line, size_t line_len, char allergens[MAX_NUM_ALLERGENS][MAX_ALLERGEN_LEN], size_t* n_allergens, char ingredients[MAX_NUM_INGREDIENTS][MAX_INGREDIENT_LEN], size_t* n_ingredients)
 {
@@ -200,11 +212,11 @@ static void add_ingredients_to_allergen(allergen_t* allergen, char ingredients[M
 
 static size_t solve_part_1(const char* const input, size_t size)
 {
-    size_t ans = 0;
-    allergen_t allergens[MAX_NUM_ALLERGENS] = {0};
-    size_t n_allergens = 0;
-    ingredients_t all = {0};
-    ingredients_t non_allergenic = {0};
+    ans = 0;
+    memset(allergens, 0, MAX_NUM_ALLERGENS * sizeof(allergen_t));
+    n_allergens = 0;
+    memset(&all, 0, sizeof(ingredient_counter_t));
+    memset(&non_allergenic, 0, sizeof(ingredients_t));
 
     memory_reference_t* line_mem_refs = NULL;
     size_t n_lines = 0;
@@ -229,7 +241,19 @@ static size_t solve_part_1(const char* const input, size_t size)
         for(size_t i = 0; i < n_line_ingredients; ++i) {
             char* line_ingredient_name = line_ingredients[i];
             memcpy(non_allergenic.list[non_allergenic.n_ingredients++], line_ingredient_name, strlen(line_ingredient_name));
-            memcpy(all.list[all.n_ingredients++], line_ingredient_name, strlen(line_ingredient_name));
+
+            bool extant_ingred_found = false;
+            for(size_t j = 0; j < all.n_ingredients; ++j) {
+                if(strncmp(all.list[j], line_ingredient_name, strlen(line_ingredient_name)) == 0) {
+                    extant_ingred_found = true;
+                    all.count[j]++;
+                    break;
+                }
+            }
+            if(!extant_ingred_found) {
+                all.count[all.n_ingredients]++;
+                memcpy(all.list[all.n_ingredients++], line_ingredient_name, strlen(line_ingredient_name));
+            }
         }
         ingredients_make_unique(&non_allergenic);
     }
@@ -245,7 +269,7 @@ static size_t solve_part_1(const char* const input, size_t size)
         for(size_t j = 0; j < all.n_ingredients; ++j) {
             char* ingredient_name = all.list[j];
             if(strncmp(ingredient_name, non_allergenic_ingredient_name, strlen(non_allergenic_ingredient_name)) == 0) {
-                ans++;
+                ans += all.count[j];
             }
         }
     }
@@ -261,6 +285,21 @@ void day_21_part_1_example()
     size_t size = 0;
 
     const bool success = read_file_into_buf("../data/day_21_part_1_example.txt", &input, &size);
+    TEST_ASSERT_TRUE(success);
+
+    const size_t ans = solve_part_1(input, size);
+
+    free(input);
+
+    TEST_ASSERT_EQUAL_size_t(5, ans);
+}
+
+void day_21_part_1_problem()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_21_part_1_input.txt", &input, &size);
     TEST_ASSERT_TRUE(success);
 
     const size_t ans = solve_part_1(input, size);
