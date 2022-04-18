@@ -31,10 +31,10 @@ typedef struct {
     ingredients_t ingredients;
 } allergen_t;
 
-allergen_t allergens[MAX_NUM_ALLERGENS] = {0};
-size_t n_allergens = 0;
-ingredient_counter_t all = {0};
-ingredients_t non_allergenic = {0};
+static allergen_t allergens[MAX_NUM_ALLERGENS] = {0};
+static size_t n_allergens = 0;
+static ingredient_counter_t all = {0};
+static ingredients_t non_allergenic = {0};
 
 static bool extract_line_data(const char* const line, size_t line_len, char allergens[MAX_NUM_ALLERGENS][MAX_ALLERGEN_LEN], size_t* n_allergens, char ingredients[MAX_NUM_INGREDIENTS][MAX_INGREDIENT_LEN], size_t* n_ingredients)
 {
