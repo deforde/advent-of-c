@@ -1,10 +1,10 @@
 #include "day_23.h"
 
 #include <assert.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <stdlib.h>
 #include <ctype.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unity.h>
 
@@ -27,7 +27,7 @@ static void process_input(const char* const input, size_t size, cup_t* cups, siz
         if(isspace(input[i]) != 0) {
             break;
         }
-        char temp[2] = {0};
+        char temp[2] = { 0 };
         temp[0] = input[i];
         const size_t val = atoi(temp);
         if(i == 0) {
@@ -50,7 +50,7 @@ static void process_input_2(const char* const input, size_t size, cup_t* cups, s
         if(isspace(input[i]) != 0) {
             break;
         }
-        char temp[2] = {0};
+        char temp[2] = { 0 };
         temp[0] = input[i];
         const size_t val = atoi(temp);
         if(i == 0) {
@@ -115,7 +115,7 @@ static void play_game(cup_t* cups, size_t n_cups, size_t first_cup_val, size_t n
 
 static size_t solve_part_1(const char* const input, size_t size, size_t n_moves)
 {
-    cup_t cups[NUM_CUPS] = {0};
+    cup_t cups[NUM_CUPS] = { 0 };
     for(size_t i = 0; i < NUM_CUPS; ++i) {
         cups[i].val = i + 1;
     }
@@ -234,6 +234,5 @@ void day_23_part_2_problem()
 
     free(input);
 
-    TEST_ASSERT_EQUAL_size_t(149245887792, ans);
+    TEST_ASSERT_EQUAL_size_t(18930983775, ans);
 }
-
