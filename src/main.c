@@ -23,6 +23,8 @@
 #include "aoc_2020/day_21.h"
 #include "aoc_2020/day_22.h"
 #include "aoc_2020/day_23.h"
+#include "aoc_2020/day_24.h"
+#include "aoc_2020/day_25.h"
 
 void setUp(void)
 {
@@ -149,6 +151,14 @@ int main()
     RUN_TEST(day_23_part_1_problem);
     RUN_TEST(day_23_part_2_example);
     RUN_TEST(day_23_part_2_problem);
+
+    RUN_TEST(day_24_part_1_example);
+    RUN_TEST(day_24_part_1_problem);
+    RUN_TEST(day_24_part_2_example);
+    RUN_TEST(day_24_part_2_problem);
+
+    RUN_TEST(day_25_part_1_example);
+    RUN_TEST(day_25_part_1_problem);
 
     return UNITY_END();
 }
