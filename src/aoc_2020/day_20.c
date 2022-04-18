@@ -544,7 +544,7 @@ static mat_t create_lake(grid_t solved_grid, cell_t* cells, size_t n_cells)
         for(size_t j = 0; j < solved_grid.grid_dim; ++j) {
             const size_t id = solved_grid.grid[i][j].id;
             cell_t this_cell;
-            const bool cell_found = get_cell(cells, n_cells, id, &this_cell);
+            const bool __attribute__((unused)) cell_found = get_cell(cells, n_cells, id, &this_cell);
             assert(cell_found);
 
             const orientation_t orientation = solved_grid.grid[i][j].orientation;
