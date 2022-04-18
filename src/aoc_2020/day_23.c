@@ -223,3 +223,18 @@ void day_23_part_2_example()
     TEST_ASSERT_EQUAL_size_t(149245887792, ans);
 }
 
+void day_23_part_2_problem()
+{
+    char* input = NULL;
+    size_t size = 0;
+
+    const bool success = read_file_into_buf("../data/day_23_part_1_input.txt", &input, &size);
+    TEST_ASSERT_TRUE(success);
+
+    const size_t ans = solve_part_2(input, size, 10000000);
+
+    free(input);
+
+    TEST_ASSERT_EQUAL_size_t(149245887792, ans);
+}
+
