@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include <sys/wait.h>
 #include <unity.h>
 
 #include "../utility.h"
