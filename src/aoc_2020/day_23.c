@@ -1,5 +1,6 @@
 #include "day_23.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -11,6 +12,7 @@
 #include "../utility.h"
 
 #define NUM_CUPS 9
+#define NUM_CUPS_PART_2 1000000
 #define SELECTED_CUPS_PER_MOVE 3
 
 typedef struct cup_t {
@@ -37,6 +39,35 @@ static void process_input(const char* const input, size_t size, cup_t* cups, siz
             prev_cup->next = &cups[val - 1];
         }
         prev_cup = &cups[val - 1];
+    }
+    prev_cup->next = first_cup;
+}
+
+static void process_input_2(const char* const input, size_t size, cup_t* cups, size_t* first_cup_val)
+{
+    cup_t* prev_cup = NULL;
+    cup_t* first_cup = NULL;
+    for(size_t i = 0; i < size; ++i) {
+        if(isspace(input[i]) != 0) {
+            break;
+        }
+        char temp[2] = {0};
+        temp[0] = input[i];
+        const size_t val = atoi(temp);
+        if(i == 0) {
+            first_cup = &cups[val - 1];
+            *first_cup_val = val;
+        }
+        if(prev_cup) {
+            prev_cup->next = &cups[val - 1];
+        }
+        prev_cup = &cups[val - 1];
+    }
+    for(size_t i = 9; i < NUM_CUPS_PART_2; ++i) {
+        if(prev_cup) {
+            prev_cup->next = &cups[i];
+        }
+        prev_cup = &cups[i];
     }
     prev_cup->next = first_cup;
 }
@@ -104,6 +135,34 @@ static size_t solve_part_1(const char* const input, size_t size, size_t n_moves)
     return ans;
 }
 
+static size_t solve_part_2(const char* const input, size_t size, size_t n_moves)
+{
+    cup_t* cups = (cup_t*)malloc(NUM_CUPS_PART_2 * sizeof(cup_t));
+    memset(cups, 0, NUM_CUPS_PART_2 * sizeof(cup_t));
+    for(size_t i = 0; i < NUM_CUPS_PART_2; ++i) {
+        cups[i].val = i + 1;
+    }
+    size_t first_cup_val = 0;
+    process_input_2(input, size, cups, &first_cup_val);
+
+    for(size_t i = 0; i < NUM_CUPS_PART_2; ++i) {
+        assert(cups[i].next);
+    }
+
+    play_game(cups, NUM_CUPS_PART_2, first_cup_val, n_moves);
+
+    size_t ans = 1;
+    cup_t* cup = cups[0].next;
+    for(size_t i = 0; i < 2; ++i) {
+        ans *= cup->val;
+        cup = cup->next;
+    }
+
+    free(cups);
+
+    return ans;
+}
+
 void day_23_part_1_example_1()
 {
     char* input = NULL;
@@ -157,7 +216,7 @@ void day_23_part_2_example()
     const bool success = read_file_into_buf("../data/day_23_part_1_example.txt", &input, &size);
     TEST_ASSERT_TRUE(success);
 
-    const size_t ans = solve_part_1(input, size, 100);
+    const size_t ans = solve_part_2(input, size, 10000000);
 
     free(input);
 
